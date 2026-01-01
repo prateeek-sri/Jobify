@@ -33,9 +33,9 @@ export default function RootLayout({
   children,
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning >
       <head />
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Header />
           {children}
