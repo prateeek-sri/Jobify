@@ -1,5 +1,4 @@
-./node_modules
-.env
+
 
 node_modules# ===============================
 # Node.js dependencies
@@ -13,6 +12,7 @@ pnpm-debug.log*
 # ===============================
 # Environment variables
 # ===============================
+
 .env
 .env.local
 .env.development
