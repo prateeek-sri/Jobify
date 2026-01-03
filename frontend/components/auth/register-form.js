@@ -1,34 +1,56 @@
 "use client"
 
-import React from "react"
-
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { toast } from "react-hot-toast"
+import { showProfessionalToast } from "../customToast"
 
 export function RegisterForm() {
   const router = useRouter()
+  
+  // Form States
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  
+  // UI States
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("") 
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      })
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+      const data = await response.json()
 
-    // Store mock auth token
-    localStorage.setItem("auth_token", "mock_token")
-    localStorage.setItem("user_email", email)
-    localStorage.setItem("user_name", name)
+      if (!response.ok) {
+        throw new Error(data.message || "Registration failed")
+      }
 
-    router.push("/dashboard")
+      showProfessionalToast("Registration successful! Please login.")
+      router.push("/login") // redirect to login
+
+    } catch (err) {
+      console.error(err)
+      const msg = err.message || "Registration failed"
+      setError(msg)
+      showProfessionalToast(msg)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -39,6 +61,14 @@ export function RegisterForm() {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          
+          {/* Error Message Display */}
+          {error && (
+            <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="name">Full name</Label>
             <Input

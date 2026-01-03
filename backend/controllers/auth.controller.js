@@ -1,0 +1,174 @@
+import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const sendTokenResponse = (user, res) => {
+    const token = jwt.sign(
+        { userId: user._id.toString() },
+        process.env.JWT_SECRET || 'secret',
+        { expiresIn: '30d' }
+    );
+
+    const isProd = process.env.NODE_ENV === 'production';
+
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: isProd,                
+        sameSite: isProd ? 'none' : 'lax',
+        maxAge: 30 * 24 * 60 * 60 * 1000 
+    });
+
+    res.status(200).json({
+        success: true,
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar
+        }
+    });
+};
+
+
+export const register = async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'User already exists'
+            });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        await User.create({
+            name,
+            email,
+            password: hashedPassword
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Registration successful. Please login.'
+        });
+
+    } catch (err) {
+        console.error('Register Error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+
+export const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid credentials'
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid credentials'
+            });
+        }
+
+        sendTokenResponse(user, res);
+
+    } catch (err) {
+        console.error('Login Error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+
+export const logout = (req, res) => {
+    const isProd = process.env.NODE_ENV === 'production';
+
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax'
+    });
+    res.status(200).json({
+        success: true,
+        message: 'Logged out successfully'
+    });
+};
+
+
+export const getMe = async (req, res) => {
+    try {
+        const userId = req.userId || req.user?.id;
+
+        const user = await User.findById(userId).select('-password');
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            user
+        });
+
+    } catch (err) {
+        console.error('GetMe Error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+export const googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ success: false, msg: "Token missing" });
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        avatar: picture,
+        password: "GOOGLE_OAUTH", 
+      });
+    }
+
+    sendTokenResponse(user, res);
+  } catch (err) {
+    console.error("Google login error:", err);
+    res.status(500).json({ success: false, msg: "Google login failed" });
+  }
+};

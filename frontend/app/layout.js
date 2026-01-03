@@ -1,10 +1,11 @@
 import React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "sonner";
+import { Toaster } from "react-hot-toast";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "@/components/providers";
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -36,12 +37,14 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning >
       <head />
       <body className="font-sans antialiased" >
+        <Providers>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Header />
           {children}
           <Footer />
-          <Toaster position="top-right" richColors closeButton />
+          <Toaster position="top-right" reverseOrder={false} />
         </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

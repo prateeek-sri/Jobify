@@ -1,13 +1,38 @@
-export default function (req, res, next) {
-    // Frontend must send this header!
-    // Example: "x-user-id": "user_12345"
-    const userId = req.header('x-user-id');
+import jwt from 'jsonwebtoken';
 
-    if (!userId) {
-        return res.status(401).json({ msg: 'No user ID provided in headers' });
+export default function auth(req, res, next) {
+    let token;
+
+    if (req.cookies && req.cookies.token) {
+        token = req.cookies.token;
+    }
+    else if (
+        req.headers.authorization &&
+        req.headers.authorization.startsWith('Bearer ')
+    ) {
+        token = req.headers.authorization.split(' ')[1];
     }
 
-    // We trust the frontend and inject the ID into the request
-    req.user = { id: userId };
-    next();
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: 'Not authorized, please login'
+        });
+    }
+
+    try {
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET || 'secret'
+        );
+
+        req.userId = decoded.userId;
+
+        next();
+    } catch (err) {
+        return res.status(401).json({
+            success: false,
+            message: 'Token is not valid'
+        });
+    }
 }
