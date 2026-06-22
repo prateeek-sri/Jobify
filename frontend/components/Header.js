@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, LogIn } from "lucide-react"; // Removed Menu/X icons as we use custom SVG now
 import logo from "../public/logo.png";
-import logo2 from "../public/logo2.png";
 import { showProfessionalToast } from "./customToast";
 
 export function Header() {
@@ -101,27 +100,36 @@ export function Header() {
     return name.split(" ")[0];
   };
 
-  const navClass = (path) =>
-    `relative group px-1 py-0.5 transition ${
+  const isHome = pathname === "/";
+  const navClass = (path) => {
+    if (isHome) {
+      return `relative group px-1 py-0.5 transition ${
+        pathname === path
+          ? "text-slate-900 font-semibold"
+          : "text-slate-700 hover:text-slate-900"
+      }`;
+    }
+    return `relative group px-1 py-0.5 transition ${
       pathname === path
         ? "text-black dark:text-white font-semibold"
         : "text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white"
     }`;
+  };
+
+  const navContainerClass = isHome
+    ? "flex h-14 items-center justify-between rounded-full bg-white/30 backdrop-blur-2xl border border-white/50 shadow-xl shadow-blue-900/5 px-6 transition-all duration-300"
+    : "flex h-14 items-center justify-between rounded-full bg-white/10 dark:bg-black/80 border border-white/10 dark:border-none shadow-[0_4px_20px_-6px_rgba(0,0,0,0.15)] dark:shadow-[0_0_12px_0_rgba(255,255,255,0.18)] backdrop-blur-md dark:backdrop-blur-md px-6 transition-colors duration-300";
+
+  const textColorClass = isHome ? "text-slate-900" : "text-black dark:text-white";
 
   return (
     <header className="sticky top-4 z-50 w-full">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="flex h-14 items-center justify-between rounded-full bg-white/10 dark:bg-black/80 border border-white/10 dark:border-none shadow-[0_4px_20px_-6px_rgba(0,0,0,0.15)] dark:shadow-[0_0_12px_0_rgba(255,255,255,0.18)] backdrop-blur-md dark:backdrop-blur-md px-6 transition-colors duration-300">
+        <div className={navContainerClass}>
           
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="size-8 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:rotate-12">
-              <span className="font-bold text-xl">
-                <Image src={logo} alt="Logo" width={48} height={50} className="block dark:hidden" />
-                <Image src={logo2} alt="Logo" width={48} height={50} className="hidden dark:block" />
-              </span>
-            </div>
-            <span className="hidden sm:inline font-semibold text-sm text-black dark:text-white">Jobify</span>
+          <Link href="/" className="flex items-center group transition-opacity hover:opacity-80">
+            <Image src={logo} alt="Jobify Logo" width={100} height={40} className="block object-contain" />
           </Link>
 
           {/* Desktop Nav */}
@@ -194,7 +202,11 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="flex items-center gap-2 border hover:text-black border-zinc-100 shadow-xs dark:shadow-xs dark:border-zinc-900 text-black dark:text-white rounded-full px-3 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                  className={`flex items-center gap-2 border shadow-xs rounded-full px-3 transition-colors ${
+                    isHome 
+                      ? "border-white/50 text-slate-900 hover:bg-white/50" 
+                      : "border-zinc-100 hover:text-black dark:shadow-xs dark:border-zinc-900 text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10"
+                  }`}
                 >
                   <Avatar className="size-7">
                     <AvatarImage src={userAvatar || null} className="object-cover" />
@@ -213,7 +225,6 @@ export function Header() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
                     <DropdownMenuItem asChild><Link href="/analyze">Matcher</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link href="/resume">ATS Analysis</Link></DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
                       <LogOut className="size-4 mr-2" /> Logout

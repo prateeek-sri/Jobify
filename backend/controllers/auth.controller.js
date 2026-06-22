@@ -60,10 +60,20 @@ export const register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        const avatars = [
+            '/avatars/icecream.png',
+            '/avatars/vampire.png',
+            '/avatars/mask.png',
+            '/avatars/toast.png',
+            '/avatars/brush.png'
+        ];
+        const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
+
         await User.create({
             name,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            avatar: randomAvatar
         });
 
         res.status(201).json({
@@ -169,16 +179,33 @@ export const getMe = async (req, res) => {
 
 export const googleLogin = async (req, res) => {
   try {
-    const { token } = req.body;
-    if (!token) return res.status(400).json({ success: false, msg: "Token missing" });
+    console.log("GOOGLE LOGIN BODY:", req.body);
+    const { token, access_token } = req.body;
+    let email, name, picture;
 
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    const { email, name, picture } = payload;
+    if (token) {
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+      email = payload.email;
+      name = payload.name;
+      picture = payload.picture;
+    } else if (access_token) {
+      const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: `Bearer ${access_token}` },
+      });
+      const userInfo = await userInfoRes.json();
+      if (!userInfo || !userInfo.email) {
+        return res.status(400).json({ success: false, msg: "Failed to fetch Google profile" });
+      }
+      email = userInfo.email;
+      name = userInfo.name;
+      picture = userInfo.picture;
+    } else {
+      return res.status(400).json({ success: false, msg: "Token missing" });
+    }
 
     let user = await User.findOne({ email });
 
@@ -195,5 +222,79 @@ export const googleLogin = async (req, res) => {
   } catch (err) {
     console.error("Google login error:", err);
     res.status(500).json({ success: false, msg: "Google login failed" });
+  }
+};
+
+export const githubLogin = async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ success: false, msg: "Code missing" });
+
+    // 1. Exchange code for access token
+    const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code,
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+    if (tokenData.error) {
+      return res.status(400).json({ success: false, msg: "GitHub token exchange failed" });
+    }
+
+    const accessToken = tokenData.access_token;
+
+    // 2. Get User Info
+    const userResponse = await fetch("https://api.github.com/user", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const userData = await userResponse.json();
+    if (!userData || !userData.id) {
+      return res.status(400).json({ success: false, msg: "Failed to fetch GitHub profile" });
+    }
+
+    // 3. Get User Emails (since email might be private)
+    let email = userData.email;
+    if (!email) {
+      const emailResponse = await fetch("https://api.github.com/user/emails", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const emailsData = await emailResponse.json();
+      const primaryEmail = emailsData.find(e => e.primary);
+      email = primaryEmail ? primaryEmail.email : null;
+    }
+
+    if (!email) {
+      return res.status(400).json({ success: false, msg: "No email associated with GitHub account" });
+    }
+
+    // 4. Find or Create User
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name: userData.name || userData.login,
+        email,
+        avatar: userData.avatar_url,
+        password: "GITHUB_OAUTH", 
+      });
+    }
+
+    sendTokenResponse(user, res);
+  } catch (err) {
+    console.error("GitHub login error:", err);
+    res.status(500).json({ success: false, msg: "GitHub login failed" });
   }
 };

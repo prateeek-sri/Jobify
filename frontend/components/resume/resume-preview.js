@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { useEffect, useState } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Mail, Phone, MapPin, Briefcase, GraduationCap, Award, Code, 
   Loader2, AlertTriangle, CheckCircle, TrendingUp, FileText, Search
@@ -55,11 +56,44 @@ export function ResumePreview({ refreshTrigger = 0 }) {
   // 1. Loading State
   if (isLoading) {
     return (
-      <Card className="border-border/50 h-full flex items-center justify-center min-h-[400px]">
-         <div className="flex flex-col items-center gap-2 text-muted-foreground">
-             <Loader2 className="size-8 animate-spin text-blue-600" />
-             <p>Analyzing Resume & Calculating ATS Score...</p>
-         </div>
+      <Card className="border-border/50">
+        <CardContent className="p-8 space-y-6">
+          <div className="flex justify-between items-center pb-2">
+            <Skeleton className="h-6 w-36" />
+            <Skeleton className="h-5 w-16" />
+          </div>
+
+          {/* ATS Circle & Score lines */}
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-zinc-900/30 rounded-xl">
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-8 w-16" />
+            </div>
+            <Skeleton className="w-16 h-16 rounded-full" />
+          </div>
+
+          <div className="space-y-4">
+            {/* Keywords */}
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-16 rounded" />
+                <Skeleton className="h-5 w-20 rounded" />
+                <Skeleton className="h-5 w-14 rounded" />
+              </div>
+            </div>
+            
+            {/* Experience block */}
+            <div className="space-y-3 pt-4 border-t border-border">
+              <Skeleton className="h-5 w-28" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-1/3" />
+                <Skeleton className="h-3 w-full" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     )
   }
@@ -67,39 +101,73 @@ export function ResumePreview({ refreshTrigger = 0 }) {
   // 2. Empty State (Default)
   if (!isUploaded || !resumeData) {
     return (
-      <Card className="border-border/50 h-full bg-muted/20 border-dashed">
-        <CardContent className="flex flex-col items-center justify-center py-16 text-center h-full space-y-6">
-          <div className="size-20 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-            <Search className="size-10 text-blue-600 dark:text-blue-400" />
+      <div className="bg-white dark:bg-zinc-900 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-zinc-800 h-full">
+        <h3 className="text-xl font-bold text-black dark:text-white mb-6">Resume Intelligence Preview</h3>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Card 1 */}
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm">
+             <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-4">
+               <TrendingUp className="size-5" />
+             </div>
+             <h4 className="font-semibold text-black dark:text-white mb-1">ATS Score Calculation</h4>
+             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Progress visualization and analysis on your resume.</p>
+             <div className="w-full bg-gray-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden flex">
+               <div className="bg-blue-600 h-full w-[60%]"></div>
+             </div>
+          </div>
+          
+          {/* Card 2 */}
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm">
+             <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-400 mb-4">
+               <AlertTriangle className="size-5" />
+             </div>
+             <h4 className="font-semibold text-black dark:text-white mb-1">Missing Keywords</h4>
+             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Example keywords will appear here.</p>
+             <div className="flex flex-wrap gap-1">
+                <span className="text-[10px] bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">keywords</span>
+                <span className="text-[10px] bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">react</span>
+                <span className="text-[10px] bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">teams</span>
+                <span className="text-[10px] bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">web</span>
+             </div>
           </div>
 
-          <div className="space-y-2 max-w-sm">
-            <h3 className="text-2xl font-bold">Resume Intelligence</h3>
-            <p className="text-muted-foreground text-sm">
-              Upload your resume to unlock a detailed analysis.
-            </p>
+          {/* Card 3 */}
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm">
+             <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-400 mb-4">
+               <FileText className="size-5" />
+             </div>
+             <h4 className="font-semibold text-black dark:text-white mb-1">Parsed Profile</h4>
+             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Micro-interactions on hover.</p>
+             <div className="flex items-center gap-3 mb-3">
+               <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-zinc-700"></div>
+               <div className="space-y-1">
+                 <div className="w-16 h-2 bg-gray-200 dark:bg-zinc-700 rounded"></div>
+                 <div className="w-24 h-2 bg-gray-200 dark:bg-zinc-700 rounded"></div>
+               </div>
+             </div>
+             <p className="text-[10px] font-semibold text-black dark:text-white mb-1">Summary</p>
+             <div className="space-y-1">
+               <div className="w-full h-1.5 bg-gray-200 dark:bg-zinc-700 rounded"></div>
+               <div className="w-4/5 h-1.5 bg-gray-200 dark:bg-zinc-700 rounded"></div>
+             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md text-left text-sm">
-            <div className="flex items-center gap-3 p-3 bg-background rounded-lg border shadow-sm">
-                <TrendingUp className="size-5 text-green-500" />
-                <span>ATS Score Calculation</span>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-background rounded-lg border shadow-sm">
-                <AlertTriangle className="size-5 text-yellow-500" />
-                <span>Missing Keywords</span>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-background rounded-lg border shadow-sm">
-                <FileText className="size-5 text-blue-500" />
-                <span>Parsed Profile</span>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-background rounded-lg border shadow-sm">
-                <CheckCircle className="size-5 text-purple-500" />
-                <span>Improvement Tips</span>
-            </div>
+          {/* Card 4 */}
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm">
+             <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-400 mb-4">
+               <CheckCircle className="size-5" />
+             </div>
+             <h4 className="font-semibold text-black dark:text-white mb-1">Improvement Tips</h4>
+             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Action-interactions on hover.</p>
+             <ul className="text-[10px] text-gray-500 dark:text-gray-400 list-disc pl-3 space-y-1">
+               <li>Remove any problem with flow and errors.</li>
+               <li>Improve all keyword placement.</li>
+               <li>Actionable insights on your side.</li>
+             </ul>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     )
   }
 

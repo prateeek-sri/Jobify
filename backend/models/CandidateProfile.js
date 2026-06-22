@@ -11,6 +11,10 @@ const CandidateProfileSchema = new mongoose.Schema({
     atsScore: { type: Number, default: 0 }, 
     missingKeywords: [String],
     improvements: [String],
+    githubUrl: String,
+    linkedinUrl: String,
+    websiteUrl: String,
+    twitterUrl: String,
     
     experience: [{
         title: String,

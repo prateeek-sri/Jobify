@@ -9,13 +9,13 @@ export default function ResumePage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">ATS Analysis</h1>
-            <p className="text-muted-foreground text-lg">
-              Upload and manage your resume for optimized applications
+    <div className="min-h-screen bg-white dark:bg-black">
+      <main className="container mx-auto px-4 py-12 max-w-6xl">
+        <div className="space-y-12">
+          <div className="text-center max-w-3xl mx-auto">
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-[#0a192f] dark:text-white tracking-tight">Professional ATS Analysis Dashboard</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-lg md:text-xl">
+              AI-powered job application and resume analysis platform for job seekers
             </p>
           </div>
 

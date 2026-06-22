@@ -5,18 +5,12 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
 } from "@/components/ui/card"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { ProfileSkeleton } from "@/components/skeletons/profile-skeleton"
 import {
   Mail,
   Phone,
@@ -24,234 +18,21 @@ import {
   Code,
   Edit2,
   Upload,
-  Loader2,
-  Save,
-  Check,
-  X
+  X,
+  Plus,
+  Trash2,
+  Globe,
+  Github,
+  Linkedin,
+  Twitter,
+  Briefcase,
+  GraduationCap,
+  Sparkles,
+  AlertTriangle,
+  Layers,
+  Check
 } from "lucide-react"
 import { useEffect, useState } from "react"
-
-// --- ADD SKILL WIDGET (Fixed: No nested buttons/inputs) ---
-const AddSkillWidget = ({ onAdd }) => {
-  const [value, setValue] = useState("")
-  const [isOpen, setIsOpen] = useState(false)
-
-  const handleSave = (e) => {
-    e?.stopPropagation()
-    if (value.trim()) {
-      onAdd(value)
-      setValue("")
-      // Keep open to add more, or setIsOpen(false) to close
-    }
-  }
-
-  const toggleOpen = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsOpen(!isOpen)
-  }
-
-  return (
-    <div 
-        className={`skill-wrapper-container ${isOpen ? 'active' : ''}`} 
-        onClick={(e) => e.stopPropagation()}
-    >
-      <style jsx>{`
-        .skill-wrapper-container {
-            position: relative;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .wrapper {
-          --background: #62abff;
-          --icon-color: #414856;
-          --shape-color-01: #b8cbee;
-          --shape-color-02: #7691e8;
-          --shape-color-03: #fdd053;
-          --width: 40px;
-          --height: 40px;
-          --border-radius: 40px;
-          width: var(--width);
-          height: var(--height);
-          position: relative;
-          border-radius: var(--border-radius);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        /* The Toggle Button (Visual) */
-        .wrapper .btn {
-          background: var(--background);
-          width: var(--width);
-          height: var(--height);
-          position: relative;
-          z-index: 3;
-          border-radius: var(--border-radius);
-          box-shadow: 0 10px 30px rgba(65, 72, 86, 0.05);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          transition: transform 0.2s;
-          cursor: pointer;
-        }
-
-        /* Plus icon using pseudo elements */
-        .wrapper .btn::before,
-        .wrapper .btn::after {
-          content: "";
-          display: block;
-          position: absolute;
-          border-radius: 4px;
-          background: #fff;
-          transition: transform 0.3s;
-        }
-        .wrapper .btn::before { width: 4px; height: 20px; }
-        .wrapper .btn::after { width: 20px; height: 4px; }
-        
-        /* The Pop-out Input Area */
-        .wrapper .tooltip {
-          width: 40px;
-          height: 40px;
-          border-radius: 70px;
-          position: absolute;
-          background: #fff;
-          z-index: 2;
-          padding: 0;
-          box-shadow: 0 10px 30px rgba(65, 72, 86, 0.15);
-          opacity: 0;
-          top: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-          pointer-events: none;
-          overflow: hidden;
-        }
-        
-        .skill-input {
-          width: 100%;
-          height: 100%;
-          border: none;
-          outline: none;
-          background: transparent;
-          padding: 0 40px 0 15px;
-          font-size: 14px;
-          color: #333;
-          display: none; /* Hidden until active */
-        }
-
-        .save-btn {
-          position: absolute;
-          right: 5px;
-          top: 50%;
-          transform: translateY(-50%);
-          background: #62abff;
-          border-radius: 50%;
-          width: 24px;
-          height: 24px;
-          display: none;
-          justify-content: center;
-          align-items: center;
-          cursor: pointer;
-          color: white;
-          transition: background 0.2s;
-        }
-        .save-btn:hover { background: #4a9dec; }
-
-        .wrapper > svg {
-          width: 150px;
-          height: 150px;
-          position: absolute;
-          z-index: 1;
-          transform: scale(0);
-          pointer-events: none;
-        }
-        .wrapper > svg .shape {
-          fill: none;
-          stroke: none;
-          stroke-width: 3px;
-          stroke-linecap: round;
-          stroke-linejoin: round;
-          transform-origin: 50% 20%;
-        }
-
-        /* --- ACTIVE STATE (Controlled by React 'active' class) --- */
-        
-        .skill-wrapper-container.active .wrapper > svg {
-          animation: pang-animation 1.2s ease-out forwards;
-        }
-        .skill-wrapper-container.active .btn {
-          transform: rotate(45deg);
-        }
-        .skill-wrapper-container.active .tooltip {
-          width: 180px;
-          height: 50px;
-          top: -65px;
-          opacity: 1;
-          pointer-events: auto;
-        }
-        
-        .skill-wrapper-container.active .tooltip .skill-input,
-        .skill-wrapper-container.active .tooltip .save-btn {
-          display: flex;
-        }
-
-        /* Floating Shapes Animation positions */
-        .skill-wrapper-container.active .shape:nth-of-type(1) { transform: translate(25px, 30%) rotate(40deg); }
-        .skill-wrapper-container.active .shape:nth-of-type(2) { transform: translate(-4px, 30%) rotate(80deg); }
-        .skill-wrapper-container.active .shape:nth-of-type(3) { transform: translate(12px, 30%) rotate(120deg); }
-        .skill-wrapper-container.active .shape:nth-of-type(4) { transform: translate(8px, 30%) rotate(160deg); }
-        .skill-wrapper-container.active .shape:nth-of-type(5) { transform: translate(21px, 30%) rotate(200deg); }
-        .skill-wrapper-container.active .shape:nth-of-type(6) { transform: translate(0px, 30%) rotate(240deg); }
-        .skill-wrapper-container.active .shape:nth-of-type(7) { transform: translate(17px, 30%) rotate(280deg); }
-        .skill-wrapper-container.active .shape:nth-of-type(8) { transform: translate(-3px, 30%) rotate(320deg); }
-        .skill-wrapper-container.active .shape:nth-of-type(9) { transform: translate(25px, 30%) rotate(360deg); }
-
-        @keyframes pang-animation {
-          0% { transform: scale(0); opacity: 0; }
-          40% { transform: scale(1); opacity: 1; }
-          100% { transform: scale(1.1); opacity: 0; }
-        }
-      `}</style>
-
-      <div className="wrapper">
-        <div className="btn" role="button" onClick={toggleOpen}></div>
-        
-        <div className="tooltip" onClick={(e) => e.stopPropagation()}>
-          <input 
-            type="text" 
-            className="skill-input" 
-            placeholder="Add skill..." 
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSave(e)}
-            onClick={(e) => e.stopPropagation()} // Prevent accordion close
-          />
-          <div className="save-btn" role="button" onClick={handleSave}>
-            <Check size={14} />
-          </div>
-        </div>
-
-        <svg viewBox="0 0 300 300">
-           <use href="#shape-01" className="shape" />
-           <use href="#shape-02" className="shape" />
-           <use href="#shape-03" className="shape" />
-           <use href="#shape-04" className="shape" />
-           <use href="#shape-05" className="shape" />
-           <use href="#shape-06" className="shape" />
-           <use href="#shape-07" className="shape" />
-           <use href="#shape-08" className="shape" />
-           <use href="#shape-09" className="shape" />
-        </svg>
-      </div>
-    </div>
-  )
-}
 
 export function ProfileView() {
   const [profile, setProfile] = useState({
@@ -262,22 +43,50 @@ export function ProfileView() {
       location: "",
       title: "",
       summary: "",
-      avatar: "", 
+      avatar: "",
+      githubUrl: "",
+      linkedinUrl: "",
+      websiteUrl: "",
+      twitterUrl: "",
     },
     skills: {
       technical: [],
-      soft: [],
     },
+    experience: [],
+    education: [],
+    projects: [],
     resumeUploaded: false,
+    atsScore: 0,
+    missingKeywords: [],
+    improvements: [],
   })
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [editingSection, setEditingSection] = useState(null)
   
-  // --- 1. FETCH DATA FROM BACKEND ---
+  // Navigation State
+  const [activeTab, setActiveTab] = useState("overview")
+
+  // Activity Calendar state
+  const [activities, setActivities] = useState([])
+
+  // Lists edit states
+  const [editingExperienceIndex, setEditingExperienceIndex] = useState(null)
+  const [expForm, setExpForm] = useState({ title: "", company: "", duration: "", description: "" })
+
+  const [editingProjectIndex, setEditingProjectIndex] = useState(null)
+  const [projForm, setProjForm] = useState({ name: "", description: "", technologies: "" })
+
+  const [editingEducationIndex, setEditingEducationIndex] = useState(null)
+  const [eduForm, setEduForm] = useState({ degree: "", school: "", year: "" })
+
+  const [showDefaultAvatars, setShowDefaultAvatars] = useState(false)
+
+  // --- FETCH DATA ---
   useEffect(() => {
     fetchProfile()
+    fetchActivities()
   }, [])
 
   const fetchProfile = async () => {
@@ -295,15 +104,24 @@ export function ProfileView() {
                 email: data.email || "",
                 phone: data.phone || "",
                 location: data.location || "",
-                title: data.experience?.[0]?.title || "", 
+                title: data.experience?.[0]?.title || data.title || "", 
                 summary: data.summary || "",
-                avatar: data.avatar || "" 
+                avatar: data.avatar || "",
+                githubUrl: data.githubUrl || "",
+                linkedinUrl: data.linkedinUrl || "",
+                websiteUrl: data.websiteUrl || "",
+                twitterUrl: data.twitterUrl || "",
             },
             skills: {
                 technical: data.skills || [],
-                soft: [] 
             },
-            resumeUploaded: true 
+            experience: data.experience || [],
+            education: data.education || [],
+            projects: data.projects || [],
+            resumeUploaded: data.atsScore > 0 || (data.skills && data.skills.length > 0) || false,
+            atsScore: data.atsScore || 0,
+            missingKeywords: data.missingKeywords || [],
+            improvements: data.improvements || []
         })
       }
     } catch (error) {
@@ -313,18 +131,42 @@ export function ProfileView() {
     }
   }
 
-  // --- 2. SAVE DATA TO BACKEND ---
-  const saveProfile = async () => {
+  const fetchActivities = async () => {
+    try {
+        const storedUser = localStorage.getItem("user");
+        if (!storedUser) return;
+        const user = JSON.parse(storedUser);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/application/history?userId=${user._id || user.id}`);
+        if (res.ok) {
+            const apps = await res.json();
+            if (Array.isArray(apps)) {
+                setActivities(apps);
+            }
+        }
+    } catch (err) {
+        console.error("Failed to fetch applications activity history", err);
+    }
+  }
+
+  // --- SAVE DIRECT HELPER ---
+  const saveProfileDirect = async (updatedProfile) => {
     setIsSaving(true)
     try {
         const backendPayload = {
-            name: profile.personalInfo.name,
-            email: profile.personalInfo.email,
-            phone: profile.personalInfo.phone,
-            location: profile.personalInfo.location,
-            summary: profile.personalInfo.summary,
-            skills: [...profile.skills.technical, ...profile.skills.soft],
-            avatar: profile.personalInfo.avatar
+            name: updatedProfile.personalInfo.name,
+            email: updatedProfile.personalInfo.email,
+            phone: updatedProfile.personalInfo.phone,
+            location: updatedProfile.personalInfo.location,
+            summary: updatedProfile.personalInfo.summary,
+            skills: updatedProfile.skills.technical,
+            education: updatedProfile.education,
+            projects: updatedProfile.projects,
+            experience: updatedProfile.experience,
+            avatar: updatedProfile.personalInfo.avatar,
+            githubUrl: updatedProfile.personalInfo.githubUrl,
+            linkedinUrl: updatedProfile.personalInfo.linkedinUrl,
+            websiteUrl: updatedProfile.personalInfo.websiteUrl,
+            twitterUrl: updatedProfile.personalInfo.twitterUrl,
         }
 
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
@@ -334,37 +176,189 @@ export function ProfileView() {
             body: JSON.stringify(backendPayload)
         })
 
-        if (res.ok) {
-            setEditingSection(null)
+        if (!res.ok) {
+           console.error("Failed to save changes directly")
         }
     } catch (error) {
-        console.error("Failed to save", error)
+        console.error("Failed to save changes", error)
     } finally {
         setIsSaving(false)
     }
   }
 
-  // --- 3. SKILL HANDLERS ---
-  const handleSkillAdd = (type, skillName) => {
-    if (!skillName.trim()) return
-    const updatedSkills = {
-      ...profile.skills,
-      [type]: [...profile.skills[type], skillName.trim()],
+  // --- PERSONAL INFO SAVE ---
+  const savePersonalAndSocials = async () => {
+    await saveProfileDirect(profile)
+    setEditingSection(null)
+  }
+
+  // --- SKILL HANDLERS ---
+  const handleSkillAdd = (val) => {
+    const trimmed = val.trim()
+    if (!trimmed) return
+    if (profile.skills.technical.includes(trimmed)) return
+    
+    const updated = {
+      ...profile,
+      skills: {
+        ...profile.skills,
+        technical: [...profile.skills.technical, trimmed]
+      }
     }
-    setProfile({ ...profile, skills: updatedSkills })
+    setProfile(updated)
+    saveProfileDirect(updated)
   }
 
-  const removeSkill = (type, idx) => {
-    const updated = [...profile.skills[type]]
-    updated.splice(idx, 1)
-    setProfile({ ...profile, skills: { ...profile.skills, [type]: updated } })
+  const removeSkill = (idx) => {
+    const updatedSkills = [...profile.skills.technical]
+    updatedSkills.splice(idx, 1)
+    
+    const updated = {
+      ...profile,
+      skills: {
+        ...profile.skills,
+        technical: updatedSkills
+      }
+    }
+    setProfile(updated)
+    saveProfileDirect(updated)
   }
 
-  // --- 4. UPLOAD HANDLERS ---
+  // --- EXPERIENCE EDITORS ---
+  const handleAddExperienceClick = () => {
+    setExpForm({ title: "", company: "", duration: "", description: "" })
+    setEditingExperienceIndex(-1)
+  }
+
+  const handleEditExperienceClick = (idx, item) => {
+    setExpForm({
+      title: item.title || "",
+      company: item.company || "",
+      duration: item.duration || "",
+      description: item.description || ""
+    })
+    setEditingExperienceIndex(idx)
+  }
+
+  const handleSaveExperience = () => {
+    if (!expForm.title.trim() || !expForm.company.trim()) {
+      alert("Title and Company are required")
+      return
+    }
+    let updatedList = [...profile.experience]
+    if (editingExperienceIndex === -1) {
+      updatedList.push({ ...expForm })
+    } else {
+      updatedList[editingExperienceIndex] = { ...expForm }
+    }
+    const updated = { ...profile, experience: updatedList }
+    setProfile(updated)
+    saveProfileDirect(updated)
+    setEditingExperienceIndex(null)
+  }
+
+  const removeExperience = (idx) => {
+    const updatedList = [...profile.experience]
+    updatedList.splice(idx, 1)
+    const updated = { ...profile, experience: updatedList }
+    setProfile(updated)
+    saveProfileDirect(updated)
+  }
+
+  // --- PROJECTS EDITORS ---
+  const handleAddProjectClick = () => {
+    setProjForm({ name: "", description: "", technologies: "" })
+    setEditingProjectIndex(-1)
+  }
+
+  const handleEditProjectClick = (idx, item) => {
+    setProjForm({
+      name: item.name || "",
+      description: item.description || "",
+      technologies: item.technologies ? item.technologies.join(", ") : ""
+    })
+    setEditingProjectIndex(idx)
+  }
+
+  const handleSaveProject = () => {
+    if (!projForm.name.trim()) {
+      alert("Project Name is required")
+      return
+    }
+    const techArray = projForm.technologies
+      ? projForm.technologies.split(",").map(t => t.trim()).filter(Boolean)
+      : []
+
+    let updatedList = [...profile.projects]
+    const itemData = {
+      name: projForm.name,
+      description: projForm.description,
+      technologies: techArray
+    }
+    
+    if (editingProjectIndex === -1) {
+      updatedList.push(itemData)
+    } else {
+      updatedList[editingProjectIndex] = itemData
+    }
+    const updated = { ...profile, projects: updatedList }
+    setProfile(updated)
+    saveProfileDirect(updated)
+    setEditingProjectIndex(null)
+  }
+
+  const removeProject = (idx) => {
+    const updatedList = [...profile.projects]
+    updatedList.splice(idx, 1)
+    const updated = { ...profile, projects: updatedList }
+    setProfile(updated)
+    saveProfileDirect(updated)
+  }
+
+  // --- EDUCATION EDITORS ---
+  const handleAddEducationClick = () => {
+    setEduForm({ degree: "", school: "", year: "" })
+    setEditingEducationIndex(-1)
+  }
+
+  const handleEditEducationClick = (idx, item) => {
+    setEduForm({
+      degree: item.degree || "",
+      school: item.school || "",
+      year: item.year || ""
+    })
+    setEditingEducationIndex(idx)
+  }
+
+  const handleSaveEducation = () => {
+    if (!eduForm.degree.trim() || !eduForm.school.trim()) {
+      alert("Degree and School are required")
+      return
+    }
+    let updatedList = [...profile.education]
+    if (editingEducationIndex === -1) {
+      updatedList.push({ ...eduForm })
+    } else {
+      updatedList[editingEducationIndex] = { ...eduForm }
+    }
+    const updated = { ...profile, education: updatedList }
+    setProfile(updated)
+    saveProfileDirect(updated)
+    setEditingEducationIndex(null)
+  }
+
+  const removeEducation = (idx) => {
+    const updatedList = [...profile.education]
+    updatedList.splice(idx, 1)
+    const updated = { ...profile, education: updatedList }
+    setProfile(updated)
+    saveProfileDirect(updated)
+  }
+
+  // --- AVATAR & RESUME HANDLERS ---
   const handleResumeUpload = async (file) => {
     const formData = new FormData()
     formData.append('resume', file)
-    
     setIsLoading(true);
 
     try {
@@ -378,25 +372,31 @@ export function ProfileView() {
             const data = await res.json()
             const newProfileData = data.profile;
             
-            setProfile(prev => ({
-                ...prev,
+            const updated = {
+                ...profile,
                 personalInfo: {
-                    ...prev.personalInfo,
-                    name: newProfileData.name || prev.personalInfo.name,
-                    email: newProfileData.email || prev.personalInfo.email,
-                    phone: newProfileData.phone || prev.personalInfo.phone,
-                    location: newProfileData.location || prev.personalInfo.location,
-                    summary: newProfileData.summary || prev.personalInfo.summary,
-                    title: newProfileData.experience?.[0]?.title || prev.personalInfo.title,
-                    avatar: newProfileData.avatar || prev.personalInfo.avatar 
+                    ...profile.personalInfo,
+                    name: newProfileData.name || profile.personalInfo.name,
+                    email: newProfileData.email || profile.personalInfo.email,
+                    phone: newProfileData.phone || profile.personalInfo.phone,
+                    location: newProfileData.location || profile.personalInfo.location,
+                    summary: newProfileData.summary || profile.personalInfo.summary,
+                    title: newProfileData.experience?.[0]?.title || profile.personalInfo.title,
+                    avatar: newProfileData.avatar || profile.personalInfo.avatar 
                 },
                 skills: {
-                    ...prev.skills,
+                    ...profile.skills,
                     technical: newProfileData.skills || [],
-                    soft: prev.skills.soft 
                 },
+                experience: newProfileData.experience || profile.experience,
+                education: newProfileData.education || profile.education,
+                projects: newProfileData.projects || profile.projects,
+                atsScore: newProfileData.atsScore || 0,
+                missingKeywords: newProfileData.missingKeywords || [],
+                improvements: newProfileData.improvements || [],
                 resumeUploaded: true
-            }))
+            }
+            setProfile(updated)
 
             const storedUser = localStorage.getItem("user");
             if (storedUser) {
@@ -419,326 +419,969 @@ export function ProfileView() {
     }
 
     const reader = new FileReader()
-    
     reader.onload = async () => {
       const base64Image = reader.result;
-
-      setProfile(prev => ({
-        ...prev,
+      const updated = {
+        ...profile,
         personalInfo: {
-          ...prev.personalInfo,
+          ...profile.personalInfo,
           avatar: base64Image,
-        },
-      }))
-
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ avatar: base64Image }) 
-        })
-
-        if (!res.ok) console.error("Failed to save avatar to server")
-      } catch (error) {
-        console.error("Network error saving avatar", error)
+        }
       }
+      setProfile(updated)
+      await saveProfileDirect(updated)
     }
-    
     reader.readAsDataURL(file)
   }
 
-  // --- STYLING CONSTANTS ---
-  const btnPrimary = "bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
-  const btnOutline = "border-slate-200 dark:border-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50"
-  const inputFocus = "focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500"
+  const handleSelectDefaultAvatar = async (src) => {
+    const updated = {
+      ...profile,
+      personalInfo: {
+        ...profile.personalInfo,
+        avatar: src,
+      }
+    }
+    setProfile(updated)
+    await saveProfileDirect(updated)
+    setShowDefaultAvatars(false)
+  }
+
+  const DEFAULT_AVATARS = [
+    '/avatars/avatar.png',
+    '/avatars/boy.png',
+    '/avatars/bulldog.png',
+    '/avatars/duck.png',
+    '/avatars/giraffe.png',
+    '/avatars/girl.png',
+    '/avatars/man.png',
+    '/avatars/penguin.png',
+    '/avatars/woman.png',
+  ]
+
+  // --- CALENDAR DATA COMPUTATION ---
+  const activityMap = {}
+  activities.forEach(app => {
+    if (app.createdAt) {
+      const dateStr = app.createdAt.split('T')[0]
+      activityMap[dateStr] = (activityMap[dateStr] || 0) + 1
+    }
+  })
+
+  const days = []
+  const today = new Date()
+  const startDay = new Date()
+  startDay.setDate(today.getDate() - 111 - today.getDay()) // Back 16 weeks, aligned to Sunday
+
+  for (let i = 0; i < 112; i++) {
+    const d = new Date(startDay)
+    d.setDate(startDay.getDate() + i)
+    days.push(d)
+  }
+
+  // --- ATS SCORE CIRCLE CALCULATOR ---
+  const radius = 40
+  const circumference = 2 * Math.PI * radius
+  const atsScore = profile.atsScore || 0
+  const strokeDashoffset = circumference - (atsScore / 100) * circumference
 
   if (isLoading) {
-      return <div className="flex justify-center py-20"><Loader2 className="size-8 animate-spin" /></div>
+    return <ProfileSkeleton />
   }
 
   return (
-    <div className="space-y-6">
-      
-      {/* GLOBAL SVG SYMBOLS FOR ADD WIDGET */}
-      <svg style={{ display: 'none' }} xmlns="http://www.w3.org/2000/svg">
-        <symbol id="shape-01" viewBox="0 0 300 300"><polygon points="155.77 140.06 141.08 152.42 159.12 158.96 155.77 140.06" stroke="var(--shape-color-03)"></polygon></symbol>
-        <symbol id="shape-02" viewBox="0 0 300 300"><g stroke="var(--shape-color-02)"><line y2="152.29" x2="141.54" y1="146.73" x1="158.66"></line><line y2="158.07" x2="152.88" y1="140.95" x1="147.32"></line></g></symbol>
-        <symbol id="shape-03" viewBox="0 0 300 300"><circle r="13" cy="149.51" cx="150.1" stroke="var(--shape-color-01)"></circle></symbol>
-        <symbol id="shape-04" viewBox="0 0 300 300"><circle r="4" cy="149.51" cx="150.1" fill="var(--shape-color-01)"></circle></symbol>
-        <symbol id="shape-05" viewBox="0 0 300 300"><rect transform="translate(40.44 -31.76) rotate(13.94)" height="18" width="18" y="140.51" x="141.1" stroke="var(--shape-color-03)"></rect></symbol>
-        <symbol id="shape-06" viewBox="0 0 300 300"><g stroke="var(--shape-color-02)"><line y2="146.24" x2="141.72" y1="152.78" x1="158.48"></line><line y2="157.89" x2="146.83" y1="141.13" x1="153.37"></line></g></symbol>
-        <symbol id="shape-07" viewBox="0 0 300 300"><rect transform="translate(-42.94 62.23) rotate(-20.56)" height="24" width="24" y="137.51" x="138.1" stroke="var(--shape-color-03)"></rect></symbol>
-        <symbol id="shape-08" viewBox="0 0 300 300"><circle r="4" cy="149.51" cx="150.1" fill="var(--shape-color-01)"></circle></symbol>
-        <symbol id="shape-09" viewBox="0 0 300 300"><circle r="8" cy="149.51" cx="150.1" stroke="var(--shape-color-01)"></circle></symbol>
-      </svg>
+    <div className="min-h-screen bg-neutral-50 dark:bg-zinc-950 pb-20">
+      <div className="container mx-auto px-4 max-w-7xl">
+        
+        {/* Upper Title Area */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-8 border-b border-zinc-200 dark:border-zinc-800 mb-8">
+          <div>
+            <h1 className="text-3xl font-black text-zinc-900 dark:text-white">Profile Page</h1>
+            <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Manage your professional information, stats and pipeline visibility</p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <input
+              type="file"
+              className="hidden"
+              id="resumeUploadBtn"
+              accept=".pdf"
+              onChange={(e) => e.target.files?.[0] && handleResumeUpload(e.target.files[0])}
+            />
+            <label htmlFor="resumeUploadBtn" className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors cursor-pointer shadow-md">
+              <Upload className="size-4" /> {profile.resumeUploaded ? "Update Resume" : "Upload Resume"}
+            </label>
+          </div>
+        </div>
 
-      {/* Personal Info Card */}
-      <Card className="border-border/50">
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row items-start gap-6">
-            
-            {/* Avatar Section */}
-            <div className="relative">
-              <Avatar className="size-24 border-2 border-slate-300 dark:border-slate-600">
-                {profile.personalInfo.avatar ? (
-                  <AvatarImage src={profile.personalInfo.avatar} />
-                ) : (
-                  <AvatarFallback className="bg-slate-400 dark:bg-slate-700 text-white text-3xl font-bold">
-                    {profile.personalInfo.name
-                      ? profile.personalInfo.name.split(" ").map((n) => n[0]).join("")
-                      : "U"}
-                  </AvatarFallback>
-                )}
-              </Avatar>
+        {/* LeetCode Two-Column Responsive Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          
+          {/* LEFT COLUMN: Sidebar (Bio, Info, Edit, Socials, Navigation) */}
+          <div className="space-y-6 lg:col-span-1">
+            <Card className="border-zinc-200/80 dark:border-zinc-800/80 shadow-sm overflow-hidden bg-white dark:bg-zinc-900">
+              <CardContent className="pt-8 space-y-6">
+                
+                {/* Avatar and Primary details */}
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="relative group">
+                    <Avatar className="size-28 border-4 border-white dark:border-zinc-850 shadow-md">
+                      {profile.personalInfo.avatar ? (
+                        <AvatarImage src={profile.personalInfo.avatar} className="object-cover" />
+                      ) : (
+                        <AvatarFallback className="bg-gradient-to-tr from-blue-500 to-indigo-600 text-white text-3xl font-black">
+                          {profile.personalInfo.name
+                            ? profile.personalInfo.name.split(" ").map((n) => n[0]).join("").toUpperCase()
+                            : "U"}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
 
-              <input
-                type="file"
-                id="avatarUpload"
-                className="hidden"
-                accept="image/*"
-                onChange={(e) => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])}
-              />
-
-              <label htmlFor="avatarUpload" className="absolute bottom-0 right-0 cursor-pointer">
-                <div className={`size-6 flex items-center justify-center rounded-md border ${btnOutline} bg-background`}>
-                  <Upload className="size-3" />
-                </div>
-              </label>
-            </div>
-
-            <div className="flex-1 space-y-4 w-full">
-              {editingSection === "personal" ? (
-                <div className="space-y-3">
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <Input
-                      className={inputFocus}
-                      placeholder="Full Name"
-                      value={profile.personalInfo.name}
-                      onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, name: e.target.value } })}
+                    <input
+                      type="file"
+                      id="avatarUploadInput"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])}
                     />
-                    <Input
-                      className={inputFocus}
-                      placeholder="Title"
-                      value={profile.personalInfo.title}
-                      onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, title: e.target.value } })}
-                    />
-                  </div>
 
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <Input
-                      className={inputFocus}
-                      placeholder="Email"
-                      value={profile.personalInfo.email}
-                      onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, email: e.target.value } })}
-                    />
-                    <Input
-                      className={inputFocus}
-                      placeholder="Phone"
-                      value={profile.personalInfo.phone}
-                      onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, phone: e.target.value } })}
-                    />
-                  </div>
-
-                  <Input
-                    className={inputFocus}
-                    placeholder="Location"
-                    value={profile.personalInfo.location}
-                    onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, location: e.target.value } })}
-                  />
-
-                  <Textarea
-                    className={inputFocus}
-                    placeholder="Summary"
-                    value={profile.personalInfo.summary}
-                    onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, summary: e.target.value } })}
-                  />
-
-                  <div className="flex justify-end gap-2">
-                    <Button onClick={() => setEditingSection(null)} variant="outline" className={btnOutline}>
-                      Cancel
-                    </Button>
-                    <Button onClick={saveProfile} className={btnPrimary} disabled={isSaving}>
-                      {isSaving && <Loader2 className="size-4 mr-2 animate-spin" />}
-                      Save
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h2 className="text-3xl font-bold">{profile.personalInfo.name || "Your Name"}</h2>
-                      <p className="text-lg text-slate-900 dark:text-slate-200 font-medium">
-                        {profile.personalInfo.title || "Job Title"}
-                      </p>
+                    <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200 cursor-pointer">
+                      <label htmlFor="avatarUploadInput" className="cursor-pointer text-white flex flex-col items-center gap-1">
+                        <Upload className="size-4" />
+                        <span className="text-[10px] font-medium">Upload</span>
+                      </label>
                     </div>
+                  </div>
+
+                  <div className="space-y-1 w-full">
+                    <h2 className="text-2xl font-extrabold text-zinc-900 dark:text-white leading-tight">
+                      {profile.personalInfo.name || "Set Your Name"}
+                    </h2>
+                    <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                      {profile.personalInfo.title || "Job Title (e.g. Developer)"}
+                    </p>
+                  </div>
+                  
+                  {/* Default avatars trigger */}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowDefaultAvatars(!showDefaultAvatars)}
+                    className="text-xs border-zinc-200 dark:border-zinc-800"
+                  >
+                    Change Avatar Preset
+                  </Button>
+
+                  {/* Preset list popup */}
+                  {showDefaultAvatars && (
+                    <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800 grid grid-cols-5 gap-2 w-full">
+                      {DEFAULT_AVATARS.map(src => (
+                        <button
+                          key={src}
+                          onClick={() => handleSelectDefaultAvatar(src)}
+                          className="rounded-full overflow-hidden border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-0.5 hover:scale-110 transition-transform"
+                        >
+                          <img src={src} alt="avatar option" className="w-full h-full object-contain" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {profile.personalInfo.summary && (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 italic px-4 leading-relaxed">
+                      "{profile.personalInfo.summary}"
+                    </p>
+                  )}
+                </div>
+
+                {/* Edit Form Toggle */}
+                {editingSection === "personal" ? (
+                  <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                    <div className="space-y-2.5">
+                      <Input
+                        placeholder="Full Name"
+                        value={profile.personalInfo.name}
+                        onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, name: e.target.value } })}
+                        className="h-9 text-sm"
+                      />
+                      <Input
+                        placeholder="Job Title"
+                        value={profile.personalInfo.title}
+                        onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, title: e.target.value } })}
+                        className="h-9 text-sm"
+                      />
+                      <Input
+                        placeholder="Email Address"
+                        value={profile.personalInfo.email}
+                        onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, email: e.target.value } })}
+                        className="h-9 text-sm"
+                      />
+                      <Input
+                        placeholder="Phone Number"
+                        value={profile.personalInfo.phone}
+                        onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, phone: e.target.value } })}
+                        className="h-9 text-sm"
+                      />
+                      <Input
+                        placeholder="Location"
+                        value={profile.personalInfo.location}
+                        onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, location: e.target.value } })}
+                        className="h-9 text-sm"
+                      />
+                      <Textarea
+                        placeholder="Short summary/bio"
+                        value={profile.personalInfo.summary}
+                        onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, summary: e.target.value } })}
+                        className="text-sm min-h-[60px]"
+                      />
+                      
+                      {/* Social Inputs */}
+                      <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                        <p className="text-xs font-bold text-zinc-400">Social Links</p>
+                        <Input
+                          placeholder="GitHub Profile URL"
+                          value={profile.personalInfo.githubUrl}
+                          onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, githubUrl: e.target.value } })}
+                          className="h-8 text-xs"
+                        />
+                        <Input
+                          placeholder="LinkedIn Profile URL"
+                          value={profile.personalInfo.linkedinUrl}
+                          onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, linkedinUrl: e.target.value } })}
+                          className="h-8 text-xs"
+                        />
+                        <Input
+                          placeholder="Portfolio Website URL"
+                          value={profile.personalInfo.websiteUrl}
+                          onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, websiteUrl: e.target.value } })}
+                          className="h-8 text-xs"
+                        />
+                        <Input
+                          placeholder="Twitter Profile URL"
+                          value={profile.personalInfo.twitterUrl}
+                          onChange={(e) => setProfile({ ...profile, personalInfo: { ...profile.personalInfo, twitterUrl: e.target.value } })}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button onClick={() => setEditingSection(null)} variant="outline" size="sm" className="flex-1 text-xs">
+                        Cancel
+                      </Button>
+                      <Button onClick={savePersonalAndSocials} size="sm" className="flex-1 text-xs bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">
+                        Save Info
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6 pt-4 border-t border-zinc-150 dark:border-zinc-800">
+                    
+                    {/* Contact detail rows */}
+                    <div className="space-y-3.5 text-sm text-zinc-600 dark:text-zinc-300">
+                      {profile.personalInfo.location && (
+                        <div className="flex items-center gap-3">
+                          <MapPin className="size-4 text-zinc-400 shrink-0" />
+                          <span>{profile.personalInfo.location}</span>
+                        </div>
+                      )}
+                      {profile.personalInfo.email && (
+                        <div className="flex items-center gap-3">
+                          <Mail className="size-4 text-zinc-400 shrink-0" />
+                          <span className="truncate">{profile.personalInfo.email}</span>
+                        </div>
+                      )}
+                      {profile.personalInfo.phone && (
+                        <div className="flex items-center gap-3">
+                          <Phone className="size-4 text-zinc-400 shrink-0" />
+                          <span>{profile.personalInfo.phone}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Social links row */}
+                    <div className="flex items-center justify-center gap-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                      {profile.personalInfo.githubUrl ? (
+                        <a href={profile.personalInfo.githubUrl} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 transition-colors">
+                          <Github className="size-5" />
+                        </a>
+                      ) : <span className="p-2 text-zinc-300 dark:text-zinc-700"><Github className="size-5" /></span>}
+
+                      {profile.personalInfo.linkedinUrl ? (
+                        <a href={profile.personalInfo.linkedinUrl} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-blue-600 transition-colors">
+                          <Linkedin className="size-5" />
+                        </a>
+                      ) : <span className="p-2 text-zinc-300 dark:text-zinc-700"><Linkedin className="size-5" /></span>}
+
+                      {profile.personalInfo.websiteUrl ? (
+                        <a href={profile.personalInfo.websiteUrl} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-emerald-600 transition-colors">
+                          <Globe className="size-5" />
+                        </a>
+                      ) : <span className="p-2 text-zinc-300 dark:text-zinc-700"><Globe className="size-5" /></span>}
+
+                      {profile.personalInfo.twitterUrl ? (
+                        <a href={profile.personalInfo.twitterUrl} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-sky-500 transition-colors">
+                          <Twitter className="size-5" />
+                        </a>
+                      ) : <span className="p-2 text-zinc-300 dark:text-zinc-700"><Twitter className="size-5" /></span>}
+                    </div>
+
                     <Button
                       variant="outline"
-                      size="sm"
+                      className="w-full text-xs font-semibold"
                       onClick={() => setEditingSection("personal")}
-                      className={`flex items-center gap-1 ${btnOutline}`}
                     >
-                      <Edit2 className="size-4" /> Edit
+                      <Edit2 className="size-3 mr-1.5" /> Edit Profile & Socials
                     </Button>
                   </div>
+                )}
 
-                  <div className="grid sm:grid-cols-2 gap-3 text-sm text-muted-foreground mt-2">
+                {/* Navigation Tabs - Swaps Right Side view */}
+                <div className="pt-4 border-t border-zinc-150 dark:border-zinc-800 space-y-1">
+                  <button
+                    onClick={() => setActiveTab("overview")}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      activeTab === "overview"
+                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                        : "text-zinc-650 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/30"
+                    }`}
+                  >
                     <div className="flex items-center gap-2">
-                      <Mail className="size-4" /> {profile.personalInfo.email || "No email"}
+                      <Sparkles className="size-4 text-emerald-500" />
+                      <span>Overview (ATS & Stats)</span>
                     </div>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("experience")}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      activeTab === "experience"
+                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                        : "text-zinc-650 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/30"
+                    }`}
+                  >
                     <div className="flex items-center gap-2">
-                      <Phone className="size-4" /> {profile.personalInfo.phone || "No phone"}
+                      <Briefcase className="size-4 text-blue-500" />
+                      <span>Work Experience</span>
                     </div>
-                    <div className="flex items-center gap-2 col-span-2">
-                      <MapPin className="size-4" /> {profile.personalInfo.location || "No location"}
+                    <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-600 dark:text-zinc-400">
+                      {profile.experience?.length || 0}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("skills")}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      activeTab === "skills"
+                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                        : "text-zinc-650 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Code className="size-4 text-purple-500" />
+                      <span>Technical Skills</span>
                     </div>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {profile.personalInfo.summary || "Add a summary to your profile..."}
-                  </p>
+                    <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-600 dark:text-zinc-400">
+                      {profile.skills.technical?.length || 0}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("projects")}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      activeTab === "projects"
+                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                        : "text-zinc-650 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Code className="size-4 text-purple-500" />
+                      <span>Projects</span>
+                    </div>
+                    <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-600 dark:text-zinc-400">
+                      {profile.projects?.length || 0}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("education")}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      activeTab === "education"
+                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                        : "text-zinc-650 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="size-4 text-emerald-500" />
+                      <span>Education</span>
+                    </div>
+                    <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-600 dark:text-zinc-400">
+                      {profile.education?.length || 0}
+                    </span>
+                  </button>
                 </div>
-              )}
-            </div>
+
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Resume Upload */}
-      <Card className="border-border/50">
-        <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
-          <p className="text-sm text-muted-foreground">
-            {profile.resumeUploaded ? "Resume Uploaded" : "No resume uploaded yet"}
-          </p>
-
-          <input
-            type="file"
-            className="hidden"
-            id="resumeUpload"
-            accept=".pdf"
-            onChange={(e) => e.target.files?.[0] && handleResumeUpload(e.target.files[0])}
-          />
-
-          <label htmlFor="resumeUpload">
-            <style jsx>{`
-                .custom-resume-btn {
-                    /* Default Colors: Inherit from Parent (controlled by Tailwind below) */
-                    color: inherit; 
-                    /* Glassmorphism Background */
-                    background: rgba(var(--foreground-rgb), 0.05);
-                    padding: 10px 15px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    overflow: hidden;
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    gap: 8px;
-                    border-radius: 5px;
-                    margin: 0 5px;
-                    transition: 0.2s;
-                    border: 1px solid transparent;
-                    cursor: pointer;
-                }
-
-                .custom-resume-btn:hover {
-                    border-color: currentColor;
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                }
-
-                .custom-resume-btn:active {
-                    transform: translateY(1px);
-                    box-shadow: none;
-                }
-            `}</style>
+          {/* RIGHT COLUMN: Statistics or swapable editors list */}
+          <div className="space-y-6 lg:col-span-2">
             
-            <a className="custom-resume-btn text-black bg-zinc-100 hover:bg-zinc-200 dark:text-white dark:bg-zinc-800 dark:hover:bg-zinc-700">
-                <svg viewBox="0 0 256 256" height="20" width="20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M74.34 85.66a8 8 0 0 1 11.32-11.32L120 108.69V24a8 8 0 0 1 16 0v84.69l34.34-34.35a8 8 0 0 1 11.32 11.32l-48 48a8 8 0 0 1-11.32 0ZM240 136v64a16 16 0 0 1-16 16H32a16 16 0 0 1-16-16v-64a16 16 0 0 1 16-16h52.4a4 4 0 0 1 2.83 1.17L111 145a24 24 0 0 0 34 0l23.8-23.8a4 4 0 0 1 2.8-1.2H224a16 16 0 0 1 16 16m-40 32a12 12 0 1 0-12 12a12 12 0 0 0 12-12" fill="currentColor"></path>
-                </svg>
-                {profile.resumeUploaded ? "Update Resume" : "Upload Resume"}
-            </a>
-          </label>
-        </CardContent>
-      </Card>
+            {/* VIEW 1: Overview Tab */}
+            {activeTab === "overview" && (
+              <>
+                {/* ATS Strength Card (LeetCode stats style) */}
+                <Card className="border-zinc-200/80 dark:border-zinc-800/80 shadow-sm bg-white dark:bg-zinc-900">
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col md:flex-row items-center md:items-stretch gap-8">
+                      
+                      {/* SVG Circle progress */}
+                      <div className="flex flex-col items-center justify-center md:border-r border-zinc-150 dark:border-zinc-800 md:pr-8 py-2 shrink-0">
+                        <div className="relative flex items-center justify-center size-28">
+                          <svg className="w-full h-full transform -rotate-90">
+                            <circle
+                              cx="56"
+                              cy="56"
+                              r={radius}
+                              className="stroke-zinc-100 dark:stroke-zinc-800"
+                              strokeWidth="8"
+                              fill="transparent"
+                            />
+                            <circle
+                              cx="56"
+                              cy="56"
+                              r={radius}
+                              className="stroke-emerald-500 dark:stroke-emerald-400 transition-all duration-700"
+                              strokeWidth="8"
+                              fill="transparent"
+                              strokeDasharray={circumference}
+                              strokeDashoffset={strokeDashoffset}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute flex flex-col items-center justify-center">
+                            <span className="text-2xl font-black text-zinc-900 dark:text-white leading-none">{atsScore}</span>
+                            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-extrabold uppercase mt-1">ATS Score</span>
+                          </div>
+                        </div>
+                        <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 mt-3 text-center">
+                          {atsScore >= 80 ? "🔥 Excellent Match" : atsScore >= 60 ? "📈 Good Match" : "⚠️ Needs Optimization"}
+                        </span>
+                      </div>
 
-      {/* Skills Accordion */}
-      <Card className="border-border/50">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-                <CardTitle>Skills</CardTitle>
-                <CardDescription>Manage your technical expertise</CardDescription>
-            </div>
-            <Button size="sm" onClick={saveProfile} disabled={isSaving} variant="outline" className={btnOutline}>
-                <Save className="size-4 mr-2"/> Save Skills
-            </Button>
+                      {/* Keywords & Suggestions Breakdown */}
+                      <div className="flex-1 space-y-4">
+                        <div className="flex items-center gap-1.5 text-zinc-800 dark:text-zinc-200">
+                          <Sparkles className="size-4 text-amber-500 fill-amber-500" />
+                          <span className="font-extrabold text-base">ATS Keyword intelligence</span>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-xs font-bold text-red-500 mb-1.5 flex items-center gap-1">
+                              <AlertTriangle className="size-3.5" /> Missing Keywords ({profile.missingKeywords.length})
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              {profile.missingKeywords.length > 0 ? (
+                                profile.missingKeywords.map((kw, i) => (
+                                  <span key={i} className="text-[10px] font-semibold bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 rounded dark:bg-red-950/20 dark:text-red-400 dark:border-red-950/50">
+                                    {kw}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-xs text-zinc-400 dark:text-zinc-500 italic">No missing keywords detected</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                            <p className="text-xs font-bold text-blue-500 dark:text-blue-400 mb-1.5">Improvement Recommendations</p>
+                            <ul className="text-xs text-zinc-600 dark:text-zinc-300 space-y-1 list-disc pl-4 leading-relaxed">
+                              {profile.improvements.length > 0 ? (
+                                profile.improvements.slice(0, 3).map((imp, i) => (
+                                  <li key={i}>{imp}</li>
+                                ))
+                              ) : (
+                                <li className="list-none text-zinc-400 dark:text-zinc-500 italic pl-0">Your profile looks highly optimized!</li>
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Pipeline Activity Grid (Leetcode contribution calendar style) */}
+                <Card className="border-zinc-200/80 dark:border-zinc-800/80 shadow-sm bg-white dark:bg-zinc-900">
+                  <CardContent className="pt-6 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-bold text-zinc-850 dark:text-zinc-250 flex items-center gap-1.5">
+                        <Layers className="size-4 text-green-500" strokeWidth={2} /> Pipeline Activity
+                      </span>
+                      <span className="text-xs text-zinc-400 font-medium">
+                        {activities.length} total events tracked
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex gap-1 overflow-x-auto pb-2 select-none justify-start">
+                        {[...Array(16)].map((_, colIdx) => (
+                          <div key={colIdx} className="flex flex-col gap-1 shrink-0">
+                            {[...Array(7)].map((_, rowIdx) => {
+                              const dayIndex = colIdx * 7 + rowIdx
+                              const date = days[dayIndex]
+                              if (!date) return null
+                              
+                              const dateStr = date.toISOString().split('T')[0]
+                              const count = activityMap[dateStr] || 0
+                              
+                              let bgClass = "bg-zinc-100 dark:bg-zinc-800"
+                              if (count > 0 && count <= 2) bgClass = "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800"
+                              if (count > 2 && count <= 4) bgClass = "bg-emerald-300 dark:bg-emerald-700/60 text-emerald-900"
+                              if (count > 4) bgClass = "bg-emerald-500 dark:bg-emerald-500 text-white"
+
+                              return (
+                                <div
+                                  key={rowIdx}
+                                  title={`${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${count} application activities`}
+                                  className={`w-3.5 h-3.5 rounded-sm cursor-pointer transition-transform duration-200 hover:scale-125 ${bgClass}`}
+                                />
+                              )
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Legend */}
+                      <div className="flex items-center justify-end gap-1.5 text-[10px] text-zinc-400 select-none">
+                        <span>Less</span>
+                        <div className="w-2.5 h-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-sm" />
+                        <div className="w-2.5 h-2.5 bg-emerald-150 dark:bg-emerald-950/40 rounded-sm" />
+                        <div className="w-2.5 h-2.5 bg-emerald-300 dark:bg-emerald-700/60 rounded-sm" />
+                        <div className="w-2.5 h-2.5 bg-emerald-500 rounded-sm" />
+                        <span>More</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {/* VIEW 2: Experience Tab */}
+            {activeTab === "experience" && (
+              <Card className="border-zinc-200/80 dark:border-zinc-800/80 shadow-sm bg-white dark:bg-zinc-900">
+                <CardHeader className="py-5 flex flex-row items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="size-4.5 text-blue-500" />
+                    <CardTitle className="text-lg font-extrabold text-zinc-900 dark:text-white">Work Experience</CardTitle>
+                  </div>
+                  {editingExperienceIndex === null && (
+                    <Button onClick={handleAddExperienceClick} size="sm" variant="ghost" className="h-8 px-2">
+                      <Plus className="size-4 text-blue-500" /> Add New
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  {editingExperienceIndex === -1 && (
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-850 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
+                      <p className="text-xs font-bold text-zinc-500">Add Experience</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Input
+                          placeholder="Job Title (e.g. Frontend Developer)"
+                          value={expForm.title}
+                          onChange={(e) => setExpForm({ ...expForm, title: e.target.value })}
+                          className="h-9"
+                        />
+                        <Input
+                          placeholder="Company"
+                          value={expForm.company}
+                          onChange={(e) => setExpForm({ ...expForm, company: e.target.value })}
+                          className="h-9"
+                        />
+                      </div>
+                      <Input
+                        placeholder="Duration (e.g. 2024 - Present)"
+                        value={expForm.duration}
+                        onChange={(e) => setExpForm({ ...expForm, duration: e.target.value })}
+                        className="h-9"
+                      />
+                      <Textarea
+                        placeholder="Description/Key accomplishments"
+                        value={expForm.description}
+                        onChange={(e) => setExpForm({ ...expForm, description: e.target.value })}
+                        className="min-h-[80px]"
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <Button onClick={() => setEditingExperienceIndex(null)} variant="outline" size="sm">Cancel</Button>
+                        <Button onClick={handleSaveExperience} size="sm" className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">Save</Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    {profile.experience && profile.experience.length > 0 ? (
+                      profile.experience.map((item, idx) => (
+                        <div key={idx} className="relative group p-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-850/30 rounded-xl border border-transparent hover:border-zinc-200/50 dark:hover:border-zinc-800/50 transition-all">
+                          <div className="absolute top-4 right-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => handleEditExperienceClick(idx, item)} className="p-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-750 text-zinc-500 dark:text-zinc-400">
+                              <Edit2 className="size-3.5" />
+                            </button>
+                            <button onClick={() => removeExperience(idx)} className="p-1.5 rounded-md border border-red-200 dark:border-red-900 bg-white dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-500">
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+
+                          {editingExperienceIndex === idx ? (
+                            <div className="space-y-3 pt-2">
+                              <p className="text-xs font-bold text-zinc-500">Edit Experience</p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <Input
+                                  placeholder="Job Title"
+                                  value={expForm.title}
+                                  onChange={(e) => setExpForm({ ...expForm, title: e.target.value })}
+                                  className="h-9"
+                                />
+                                <Input
+                                  placeholder="Company"
+                                  value={expForm.company}
+                                  onChange={(e) => setExpForm({ ...expForm, company: e.target.value })}
+                                  className="h-9"
+                                />
+                              </div>
+                              <Input
+                                  placeholder="Duration"
+                                  value={expForm.duration}
+                                  onChange={(e) => setExpForm({ ...expForm, duration: e.target.value })}
+                                  className="h-9"
+                                />
+                              <Textarea
+                                placeholder="Description"
+                                value={expForm.description}
+                                onChange={(e) => setExpForm({ ...expForm, description: e.target.value })}
+                                className="min-h-[80px]"
+                              />
+                              <div className="flex gap-2 justify-end">
+                                <Button onClick={() => setEditingExperienceIndex(null)} variant="outline" size="sm">Cancel</Button>
+                                <Button onClick={handleSaveExperience} size="sm" className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">Save</Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-1.5 pr-16">
+                              <h4 className="font-extrabold text-zinc-900 dark:text-white text-base">{item.title}</h4>
+                              <div className="flex items-center gap-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+                                <span>{item.company}</span>
+                                <span className="w-1 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
+                                <span className="text-xs font-medium">{item.duration}</span>
+                              </div>
+                              {item.description && (
+                                <p className="text-sm text-zinc-650 dark:text-zinc-300 leading-relaxed mt-2 pl-3 border-l-2 border-zinc-200 dark:border-zinc-800">
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-zinc-400 dark:text-zinc-500 italic text-center py-4">No work experience listed yet.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* VIEW 3: Technical Skills Tab */}
+            {activeTab === "skills" && (
+              <Card className="border-zinc-200/80 dark:border-zinc-800/80 shadow-sm bg-white dark:bg-zinc-900">
+                <CardHeader className="py-5 flex flex-row items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <Code className="size-4.5 text-purple-500" />
+                    <CardTitle className="text-lg font-extrabold text-zinc-900 dark:text-white">Technical Skills</CardTitle>
+                  </div>
+                  <AddSkillButton onAdd={handleSkillAdd} />
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="flex flex-wrap gap-2">
+                    {profile.skills.technical && profile.skills.technical.length > 0 ? (
+                      profile.skills.technical.map((skill, idx) => (
+                        <div key={idx} className="flex items-center gap-2 px-3.5 py-1.5 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-250 dark:border-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300 transition-colors">
+                          <span>{skill}</span>
+                          <button onClick={() => removeSkill(idx)} className="text-zinc-400 hover:text-red-500 rounded-full p-0.5 transition-colors">
+                            <X className="size-3" />
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-zinc-400 dark:text-zinc-500 italic text-center py-4 w-full">No technical skills added yet.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* VIEW 4: Projects Tab */}
+            {activeTab === "projects" && (
+              <Card className="border-zinc-200/80 dark:border-zinc-800/80 shadow-sm bg-white dark:bg-zinc-900">
+                <CardHeader className="py-5 flex flex-row items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <Code className="size-4.5 text-purple-500" />
+                    <CardTitle className="text-lg font-extrabold text-zinc-900 dark:text-white">Projects</CardTitle>
+                  </div>
+                  {editingProjectIndex === null && (
+                    <Button onClick={handleAddProjectClick} size="sm" variant="ghost" className="h-8 px-2">
+                      <Plus className="size-4 text-purple-500" /> Add New
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  {editingProjectIndex === -1 && (
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-855 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
+                      <p className="text-xs font-bold text-zinc-500">Add Project</p>
+                      <Input
+                        placeholder="Project Name (e.g. E-Commerce App)"
+                        value={projForm.name}
+                        onChange={(e) => setProjForm({ ...projForm, name: e.target.value })}
+                        className="h-9"
+                      />
+                      <Textarea
+                        placeholder="Project Description"
+                        value={projForm.description}
+                        onChange={(e) => setProjForm({ ...projForm, description: e.target.value })}
+                        className="min-h-[80px]"
+                      />
+                      <Input
+                        placeholder="Technologies (comma-separated, e.g. React, Node.js)"
+                        value={projForm.technologies}
+                        onChange={(e) => setProjForm({ ...projForm, technologies: e.target.value })}
+                        className="h-9"
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <Button onClick={() => setEditingProjectIndex(null)} variant="outline" size="sm">Cancel</Button>
+                        <Button onClick={handleSaveProject} size="sm" className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">Save</Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    {profile.projects && profile.projects.length > 0 ? (
+                      profile.projects.map((item, idx) => (
+                        <div key={idx} className="relative group p-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-850/30 rounded-xl border border-transparent hover:border-zinc-200/50 dark:hover:border-zinc-800/50 transition-all">
+                          <div className="absolute top-4 right-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => handleEditProjectClick(idx, item)} className="p-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-750 text-zinc-500 dark:text-zinc-400">
+                              <Edit2 className="size-3.5" />
+                            </button>
+                            <button onClick={() => removeProject(idx)} className="p-1.5 rounded-md border border-red-200 dark:border-red-900 bg-white dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-955/20 text-red-500">
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+
+                          {editingProjectIndex === idx ? (
+                            <div className="space-y-3 pt-2">
+                              <p className="text-xs font-bold text-zinc-500">Edit Project</p>
+                              <Input
+                                placeholder="Project Name"
+                                value={projForm.name}
+                                onChange={(e) => setProjForm({ ...projForm, name: e.target.value })}
+                                className="h-9"
+                              />
+                              <Textarea
+                                placeholder="Project Description"
+                                value={projForm.description}
+                                onChange={(e) => setProjForm({ ...projForm, description: e.target.value })}
+                                className="min-h-[80px]"
+                              />
+                              <Input
+                                placeholder="Technologies (comma-separated)"
+                                value={projForm.technologies}
+                                onChange={(e) => setProjForm({ ...projForm, technologies: e.target.value })}
+                                className="h-9"
+                              />
+                              <div className="flex gap-2 justify-end">
+                                <Button onClick={() => setEditingProjectIndex(null)} variant="outline" size="sm">Cancel</Button>
+                                <Button onClick={handleSaveProject} size="sm" className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">Save</Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-1.5 pr-16">
+                              <h4 className="font-extrabold text-zinc-900 dark:text-white text-base">{item.name}</h4>
+                              {item.description && (
+                                <p className="text-sm text-zinc-650 dark:text-zinc-300 leading-relaxed">
+                                  {item.description}
+                                </p>
+                              )}
+                              {item.technologies && item.technologies.length > 0 && (
+                                <div className="flex flex-wrap gap-1 pt-1.5">
+                                  {item.technologies.map((tech) => (
+                                    <span key={tech} className="text-[10px] font-semibold bg-zinc-50 dark:bg-zinc-805 border border-zinc-250 dark:border-zinc-750 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-400">
+                                      {tech}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-zinc-400 dark:text-zinc-500 italic text-center py-4">No projects listed yet.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* VIEW 5: Education Tab */}
+            {activeTab === "education" && (
+              <Card className="border-zinc-200/80 dark:border-zinc-800/80 shadow-sm bg-white dark:bg-zinc-900">
+                <CardHeader className="py-5 flex flex-row items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="size-4.5 text-emerald-500" />
+                    <CardTitle className="text-lg font-extrabold text-zinc-900 dark:text-white">Education</CardTitle>
+                  </div>
+                  {editingEducationIndex === null && (
+                    <Button onClick={handleAddEducationClick} size="sm" variant="ghost" className="h-8 px-2">
+                      <Plus className="size-4 text-emerald-500" /> Add New
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  {editingEducationIndex === -1 && (
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-850 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
+                      <p className="text-xs font-bold text-zinc-500">Add Education</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Input
+                          placeholder="Degree (e.g. B.S. Computer Science)"
+                          value={eduForm.degree}
+                          onChange={(e) => setEduForm({ ...eduForm, degree: e.target.value })}
+                          className="h-9"
+                        />
+                        <Input
+                          placeholder="School/University"
+                          value={eduForm.school}
+                          onChange={(e) => setEduForm({ ...eduForm, school: e.target.value })}
+                          className="h-9"
+                        />
+                      </div>
+                      <Input
+                        placeholder="Year (e.g. 2020 - 2024)"
+                        value={eduForm.year}
+                        onChange={(e) => setEduForm({ ...eduForm, year: e.target.value })}
+                        className="h-9"
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <Button onClick={() => setEditingEducationIndex(null)} variant="outline" size="sm">Cancel</Button>
+                        <Button onClick={handleSaveEducation} size="sm" className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">Save</Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    {profile.education && profile.education.length > 0 ? (
+                      profile.education.map((item, idx) => (
+                        <div key={idx} className="relative group p-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-850/30 rounded-xl border border-transparent hover:border-zinc-200/50 dark:hover:border-zinc-800/50 transition-all">
+                          <div className="absolute top-4 right-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => handleEditEducationClick(idx, item)} className="p-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-750 text-zinc-500 dark:text-zinc-400">
+                              <Edit2 className="size-3.5" />
+                            </button>
+                            <button onClick={() => removeEducation(idx)} className="p-1.5 rounded-md border border-red-200 dark:border-red-900 bg-white dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-955/20 text-red-500">
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+
+                          {editingEducationIndex === idx ? (
+                            <div className="space-y-3 pt-2">
+                              <p className="text-xs font-bold text-zinc-500">Edit Education</p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <Input
+                                  placeholder="Degree"
+                                  value={eduForm.degree}
+                                  onChange={(e) => setEduForm({ ...eduForm, degree: e.target.value })}
+                                  className="h-9"
+                                />
+                                <Input
+                                  placeholder="School"
+                                  value={eduForm.school}
+                                  onChange={(e) => setEduForm({ ...eduForm, school: e.target.value })}
+                                  className="h-9"
+                                />
+                              </div>
+                              <Input
+                                placeholder="Year"
+                                value={eduForm.year}
+                                onChange={(e) => setEduForm({ ...eduForm, year: e.target.value })}
+                                className="h-9"
+                              />
+                              <div className="flex gap-2 justify-end">
+                                <Button onClick={() => setEditingEducationIndex(null)} variant="outline" size="sm">Cancel</Button>
+                                <Button onClick={handleSaveEducation} size="sm" className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">Save</Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="pr-16 space-y-1">
+                              <h4 className="font-extrabold text-zinc-900 dark:text-white text-base">{item.degree}</h4>
+                              <div className="flex items-center gap-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+                                <span>{item.school}</span>
+                                <span className="w-1 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
+                                <span className="text-xs font-medium">{item.year}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-zinc-400 dark:text-zinc-500 italic text-center py-4">No education information listed yet.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
           </div>
-        </CardHeader>
 
-        <CardContent>
-          <Accordion type="single" collapsible className="w-full" defaultValue="technical">
-            {/* Technical */}
-            <AccordionItem value="technical">
-              <AccordionTrigger className="hover:no-underline flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Code className="size-5" />
-                  <span className="font-semibold">Tech Skills</span>
-                </div>
-                
-                {/* NEW ADD SKILL WIDGET (Fixed: No input checkbox / button nesting) */}
-                <AddSkillWidget onAdd={(val) => handleSkillAdd("technical", val)} />
+        </div>
 
-              </AccordionTrigger>
+      </div>
+    </div>
+  )
+}
 
-              <AccordionContent className="pt-2 flex flex-wrap gap-2">
-                {profile.skills.technical.length ? (
-                  profile.skills.technical.map((skill, idx) => (
-                    <div key={idx} className="flex items-center gap-2 px-3 py-1 border rounded-full text-sm">
-                      <span>{skill}</span>
-                      <button onClick={() => removeSkill("technical", idx)} className="text-muted-foreground hover:text-red-500">
-                        <X className="size-3" />
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">No technical skills added</p>
-                )}
-              </AccordionContent>
-            </AccordionItem>
+// Sub-component: AddSkillButton (Leetcode-like input toggle widget)
+function AddSkillButton({ onAdd }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [value, setValue] = useState("")
 
-            {/* Soft Skills */}
-            <AccordionItem value="soft">
-              <AccordionTrigger className="hover:no-underline flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Code className="size-5" />
-                  <span className="font-semibold">Soft Skills</span>
-                </div>
-                
-                <AddSkillWidget onAdd={(val) => handleSkillAdd("soft", val)} />
+  const handleSave = () => {
+    if (value.trim()) {
+      onAdd(value)
+      setValue("")
+      setIsOpen(false)
+    }
+  }
 
-              </AccordionTrigger>
-
-              <AccordionContent className="pt-2 flex flex-wrap gap-2">
-                {profile.skills.soft.length ? (
-                  profile.skills.soft.map((skill, idx) => (
-                    <div key={idx} className="flex items-center gap-2 px-3 py-1 border rounded-full text-sm">
-                      <span>{skill}</span>
-                      <button onClick={() => removeSkill("soft", idx)} className="text-muted-foreground hover:text-red-500">
-                        <X className="size-3" />
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">No soft skills added</p>
-                )}
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
+  return (
+    <div className="relative">
+      {isOpen ? (
+        <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-1.5 shadow-md max-w-[200px] absolute right-0 top-[-8px] z-10">
+          <input
+            type="text"
+            className="text-xs bg-transparent outline-none border-none p-1 w-24 text-zinc-800 dark:text-white"
+            placeholder="Add skill..."
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+            autoFocus
+          />
+          <button onClick={handleSave} className="p-1 rounded bg-emerald-500 hover:bg-emerald-600 text-white transition-colors">
+            <Check className="size-3" />
+          </button>
+          <button onClick={() => setIsOpen(false)} className="p-1 rounded bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-500 transition-colors">
+            <X className="size-3" />
+          </button>
+        </div>
+      ) : (
+        <Button onClick={() => setIsOpen(true)} size="sm" variant="ghost" className="h-8 px-2">
+          <Plus className="size-4 text-purple-500" /> Add
+        </Button>
+      )}
     </div>
   )
 }

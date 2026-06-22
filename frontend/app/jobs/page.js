@@ -5,6 +5,7 @@ import { JobSwiper } from "@/components/jobs/job-swiper"
 import { JobFilters } from "@/components/jobs/job-filters"
 import { Loader2, SearchX } from "lucide-react"
 import { showProfessionalToast } from "@/components/customToast"
+import { JobsSkeleton } from "@/components/skeletons/jobs-skeleton"
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState([])
@@ -111,6 +112,10 @@ export default function JobsPage() {
         }
   };
 
+  if (loading) {
+    return <JobsSkeleton />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8 max-w-7xl">
@@ -125,12 +130,7 @@ export default function JobsPage() {
             isLoading={loading} 
           />
 
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <Loader2 className="size-10 animate-spin text-primary" />
-                <p className="text-muted-foreground animate-pulse">Scanning LinkedIn Listings...</p>
-            </div>
-          ) : jobs.length > 0 ? (
+          {jobs.length > 0 ? (
             <JobSwiper 
                 jobs={jobs} 
                 onLoadMore={handleLoadMore} 

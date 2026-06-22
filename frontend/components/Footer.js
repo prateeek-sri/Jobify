@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Twitter, Linkedin, Github, X } from "lucide-react";
 import Image from "next/image";
 import logo from "../public/logo.png";
-import logo2 from "../public/logo2.png";
 
 export function Footer() {
   const [dateTime, setDateTime] = useState("");
+  const pathname = usePathname();
 
   useEffect(() => {
     const updateTime = () => {
@@ -29,35 +30,29 @@ export function Footer() {
     return () => clearInterval(interval);
   }, []);
 
+  if (pathname === "/login" || pathname === "/register") {
+    return null;
+  }
+
+  const isHome = pathname === "/";
+  const footerClass = isHome ? "border-t bg-[#FDFDFD] py-12" : "border-t bg-white py-12 dark:bg-black";
+  const timeBorderClass = isHome ? "text-xs text-zinc-500 font-mono border-l pl-6 border-zinc-200" : "text-xs text-zinc-500 font-mono border-l pl-6 border-zinc-200 dark:border-zinc-800";
+
   return (
-    <footer className="border-t bg-white py-12 dark:bg-black">
+    <footer className={footerClass}>
       <div className="mx-auto max-w-7xl px-6">
         {/* MAIN COMPACT ROW */}
         <div className="flex flex-col justify-center md:justify-between md:flex-row justify-between items-start md:items-center gap-8">
           {/* BRAND + DESCRIPTION + LINKS */}
           <div className="flex flex-col gap-4 max-w-2xl">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="size-8 rounded-full flex items-center justify-center">
-                {/* Image 1: Light Mode */}
+            <Link href="/" className="flex items-center group transition-opacity hover:opacity-80">
                 <Image
                   src={logo}
-                  alt="Logo"
-                  width={32}
-                  height={32}
-                  className="block dark:hidden"
+                  alt="Jobify Logo"
+                  width={120}
+                  height={40}
+                  className="block object-contain"
                 />
-                {/* Image 2: Dark Mode */}
-                <Image
-                  src={logo2}
-                  alt="Logo"
-                  width={32}
-                  height={32}
-                  className="hidden dark:block"
-                />
-              </div>
-              <span className="font-semibold text-lg text-black dark:text-white">
-                Jobify
-              </span>
             </Link>
 
             <div className="text-zinc-500 text-sm leading-relaxed flex justify-between flex-wrap gap-x-6 gap-y-2 items-center">
@@ -110,7 +105,7 @@ export function Footer() {
               Systems Operational
             </div>
 
-            <span className="text-xs text-zinc-500 font-mono border-l pl-6 border-zinc-200 dark:border-zinc-800">
+            <span className={timeBorderClass}>
               {dateTime}
             </span>
           </div>

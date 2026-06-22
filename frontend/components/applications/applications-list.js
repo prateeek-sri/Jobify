@@ -17,26 +17,26 @@ const COLUMNS = {
   APPLIED: {
     id: "APPLIED",
     title: "Applied",
-    color: "bg-blue-500",
-    lightColor: "bg-blue-50 dark:bg-blue-900/20",
+    color: "bg-transparent",
+    lightColor: "bg-[#e0f0ff] dark:bg-blue-900/10",
   },
   INTERVIEW: {
     id: "INTERVIEW",
     title: "Interviewing",
-    color: "bg-purple-500",
-    lightColor: "bg-purple-50 dark:bg-purple-900/20",
+    color: "bg-transparent",
+    lightColor: "bg-[#e9ddff] dark:bg-purple-900/10",
   },
   OFFER: {
     id: "OFFER",
     title: "Offers",
-    color: "bg-emerald-500",
-    lightColor: "bg-emerald-50 dark:bg-emerald-900/20",
+    color: "bg-transparent",
+    lightColor: "bg-[#d4f5df] dark:bg-emerald-900/10",
   },
   REJECTED: {
     id: "REJECTED",
     title: "Rejected",
-    color: "bg-red-500",
-    lightColor: "bg-red-50 dark:bg-red-900/20",
+    color: "bg-transparent",
+    lightColor: "bg-[#fce1df] dark:bg-red-900/10",
   },
 };
 
@@ -140,8 +140,7 @@ export function ApplicationsList({ applications, setApplications }) {
           >
             {/* Header */}
             <div className="p-4 border-b border-border/10 flex items-center justify-between">
-              <h2 className="font-bold text-sm flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${column.color}`} />
+              <h2 className="font-bold text-base text-black dark:text-white">
                 {column.title}
               </h2>
               <Badge
@@ -171,78 +170,70 @@ export function ApplicationsList({ applications, setApplications }) {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={`cursor-grab hover:shadow-md transition-all border-border/50 bg-card group ${
+                          className={`cursor-grab hover:shadow-md transition-all border-0 shadow-sm bg-white dark:bg-zinc-900 group rounded-xl ${
                             snapshot.isDragging
                               ? "shadow-xl ring-2 ring-primary/20 rotate-2 z-50"
                               : ""
                           }`}
                         >
-                          <CardContent className="p-3 space-y-2">
-                            {/* Title & Actions Row */}
-                            <div className="flex justify-between items-start gap-2">
-                              <h3
-                                className="font-semibold text-sm truncate leading-tight flex-1"
-                                title={app.jobId?.title}
-                              >
-                                {app.jobId?.title || "Unknown Role"}
-                              </h3>
-
-                              {/* Action Buttons Container */}
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                {/* External Link */}
-                                {app.jobId?.applyUrl && (
-                                  <a
-                                    href={app.jobId.applyUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-blue-500 transition-colors"
-                                    title="View on LinkedIn"
-                                  >
-                                    <ExternalLink className="size-3.5" />
-                                  </a>
-                                )}
-
-                                {/* 🔥 DELETE BUTTON */}
-                                <button
-                                  onClick={(e) => handleDelete(e, app._id)}
-                                  className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md text-zinc-400 hover:text-red-500 transition-colors"
-                                  title="Remove Application"
+                          <CardContent className="p-4 relative">
+                            {/* Actions overlay */}
+                            <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {app.jobId?.applyUrl && (
+                                <a
+                                  href={app.jobId.applyUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-blue-500 transition-colors bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 dark:border-zinc-800"
+                                  title="View Application"
                                 >
-                                  <X className="size-3.5" />
-                                </button>
-                              </div>
+                                  <ExternalLink className="size-3.5" />
+                                </a>
+                              )}
+                              <button
+                                onClick={(e) => handleDelete(e, app._id)}
+                                className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md text-zinc-400 hover:text-red-500 transition-colors bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 dark:border-zinc-800"
+                                title="Remove Application"
+                              >
+                                <X className="size-3.5" />
+                              </button>
                             </div>
-                            <div className="flex justify-between items-center gap-2 pr-4">
-                              <div>
-                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                  <span className="truncate max-w-[120px]">
-                                    {app.jobId?.company || "Unknown"}
-                                  </span>
-                                </div>
 
-                                <div className="pt-2 flex items-center justify-between border-t border-border/30 mt-1">
-                                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                    <CalendarClock className="size-3" />
-                                    {new Date(app.createdAt).toLocaleDateString(
-                                      undefined,
-                                      { month: "short", day: "numeric" }
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center justify-center">
+                            <div className="flex gap-3 mb-4">
+                              <div className="flex-shrink-0 flex items-center justify-center">
                                 {app.jobId?.companyLogo ? (
                                   <img
                                     src={app.jobId.companyLogo}
                                     alt="Company Logo"
-                                    className="size-12 rounded-md object-contain border border-zinc-200 bg-white p-0.5"
+                                    className="w-10 h-10 rounded object-contain bg-white border border-gray-100 dark:border-zinc-800 p-0.5"
                                   />
                                 ) : (
-                                  <div className="size-12 rounded-md border border-zinc-200 bg-zinc-50 flex items-center justify-center">
-                                    <Building2 className="size-6 text-zinc-400" />
+                                  <div className="w-10 h-10 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center">
+                                    <Building2 className="size-5 text-zinc-400" />
                                   </div>
                                 )}
                               </div>
+                              <div className="flex-1 min-w-0 pr-6">
+                                <h3
+                                  className="font-bold text-sm text-black dark:text-white leading-tight"
+                                  title={app.jobId?.title}
+                                >
+                                  {app.jobId?.title || "Unknown Role"}
+                                </h3>
+                                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                  {app.jobId?.company || "Unknown"}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                               <div className="flex items-center gap-1.5">
+                                 <CalendarClock className="size-3.5" />
+                                 <span>date applied</span>
+                               </div>
+                               <div className="text-black dark:text-white font-medium">
+                                 {new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                               </div>
                             </div>
                           </CardContent>
                         </Card>
