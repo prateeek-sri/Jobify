@@ -99,7 +99,3 @@ Jobify is an AI-powered developer career companion designed to automate applicat
    ```
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
----
-
-## 📄 License
-This project is licensed under the MIT License.
