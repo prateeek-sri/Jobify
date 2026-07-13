@@ -30,8 +30,10 @@ import {
   Sparkles,
   AlertTriangle,
   Layers,
-  Check
+  Check,
+  Target
 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { useEffect, useState } from "react"
 
 export function ProfileView() {
@@ -70,6 +72,7 @@ export function ProfileView() {
 
   // Activity Calendar state
   const [activities, setActivities] = useState([])
+  const [savedAnalyses, setSavedAnalyses] = useState([])
 
   // Lists edit states
   const [editingExperienceIndex, setEditingExperienceIndex] = useState(null)
@@ -87,7 +90,23 @@ export function ProfileView() {
   useEffect(() => {
     fetchProfile()
     fetchActivities()
+    fetchSavedAnalyses()
   }, [])
+
+  const fetchSavedAnalyses = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analyze/saved`, {
+        method: 'GET',
+        credentials: 'include'
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setSavedAnalyses(data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch saved analyses", error)
+    }
+  }
 
   const fetchProfile = async () => {
     try {
@@ -815,6 +834,22 @@ export function ProfileView() {
                       {profile.education?.length || 0}
                     </span>
                   </button>
+                  <button
+                    onClick={() => setActiveTab("saved")}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      activeTab === "saved"
+                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                        : "text-zinc-650 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Target className="size-4 text-rose-500" />
+                      <span>Saved Analyses</span>
+                    </div>
+                    <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-600 dark:text-zinc-400">
+                      {savedAnalyses.length}
+                    </span>
+                  </button>
                 </div>
 
               </CardContent>
@@ -1329,6 +1364,75 @@ export function ProfileView() {
                       ))
                     ) : (
                       <p className="text-sm text-zinc-400 dark:text-zinc-500 italic text-center py-4">No education information listed yet.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* VIEW 6: Saved Analyses Tab */}
+            {activeTab === "saved" && (
+              <Card className="border-zinc-200/80 dark:border-zinc-800/80 shadow-sm bg-white dark:bg-zinc-900">
+                <CardHeader className="py-5 flex flex-row items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <Target className="size-4.5 text-rose-500" />
+                    <CardTitle className="text-lg font-extrabold text-zinc-900 dark:text-white">Saved Analyses</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    {savedAnalyses && savedAnalyses.length > 0 ? (
+                      savedAnalyses.map((analysis, idx) => (
+                        <div key={idx} className="p-4 bg-zinc-50 dark:bg-zinc-850 rounded-xl border border-zinc-200 dark:border-zinc-800 transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant={analysis.type === 'RESUME' ? 'default' : 'secondary'} className="text-[10px] uppercase">
+                                  {analysis.type === 'RESUME' ? 'Resume Scan' : 'ATS Match'}
+                                </Badge>
+                                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  {new Date(analysis.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                              </div>
+                              <h4 className="font-bold text-zinc-900 dark:text-white text-base">
+                                Score: <span className={analysis.atsScore >= 80 ? 'text-emerald-500' : analysis.atsScore >= 60 ? 'text-amber-500' : 'text-red-500'}>{analysis.atsScore}/100</span>
+                              </h4>
+                            </div>
+                          </div>
+                          
+                          {analysis.missingKeywords && analysis.missingKeywords.length > 0 && (
+                            <div className="mb-3">
+                              <p className="text-[11px] font-bold text-zinc-500 uppercase mb-1.5">Missing Keywords</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {analysis.missingKeywords.slice(0, 5).map((kw, i) => (
+                                  <span key={i} className="text-[10px] bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 rounded dark:bg-red-950/20 dark:text-red-400 dark:border-red-950/50">
+                                    {kw}
+                                  </span>
+                                ))}
+                                {analysis.missingKeywords.length > 5 && (
+                                  <span className="text-[10px] bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded dark:bg-zinc-800 dark:text-zinc-400">+{analysis.missingKeywords.length - 5} more</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {analysis.resumeSummary && (
+                            <div>
+                              <p className="text-[11px] font-bold text-zinc-500 uppercase mb-1">Summary</p>
+                              <p className="text-sm text-zinc-650 dark:text-zinc-300 leading-relaxed line-clamp-2">
+                                {analysis.resumeSummary}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-10 space-y-3">
+                        <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto text-zinc-400">
+                          <Target className="size-6" />
+                        </div>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">No saved analyses yet.</p>
+                      </div>
                     )}
                   </div>
                 </CardContent>

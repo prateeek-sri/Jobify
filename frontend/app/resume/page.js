@@ -5,8 +5,8 @@ import { ResumeUpload } from "@/components/resume/resume-upload"
 import { ResumePreview } from "@/components/resume/resume-preview"
 
 export default function ResumePage() {
-  // This state controls when the preview should update
   const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [isUploaded, setIsUploaded] = useState(false)
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -19,12 +19,16 @@ export default function ResumePage() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* 1. We pass a function to the Upload component */}
-            <ResumeUpload onUploadSuccess={() => setRefreshTrigger((prev) => prev + 1)} />
+          <div className={`grid gap-6 ${isUploaded ? 'lg:grid-cols-1' : 'lg:grid-cols-2'}`}>
+            {!isUploaded && (
+              <ResumeUpload onUploadSuccess={() => setRefreshTrigger((prev) => prev + 1)} />
+            )}
             
-            {/* 2. We pass the trigger value to the Preview component */}
-            <ResumePreview refreshTrigger={refreshTrigger} />
+            <ResumePreview 
+              refreshTrigger={refreshTrigger} 
+              onDataLoad={(hasData) => setIsUploaded(hasData)} 
+              onReset={() => setIsUploaded(false)}
+            />
           </div>
         </div>
       </main>

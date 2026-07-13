@@ -37,13 +37,20 @@ export const analyzeMatch = async (req, res) => {
         1. Calculate a "Match Score" (0-100) based on skills, experience years, and project relevance. Be realistic, not generous.
         2. Identify "Missing Keywords" (Critical skills mentioned in JD but absent in Profile).
         3. Write a "Verdict": A 2-sentence summary of whether they should apply or not.
+        4. Provide "Suggested Improvements": An array of objects with 'area' (e.g. "Professional Summary", "Docker Usage") and 'suggestion'. Provide 2-4 key actionable improvements.
+        5. Provide a "Resume Summary": A short professional summary paragraph derived from the candidate profile.
 
         OUTPUT JSON ONLY:
         {
             "matchScore": 75,
             "missingKeywords": ["React Native", "GraphQL"],
             "verdict": "Strong candidate for frontend, but lacks required mobile experience.",
-            "explanation": "Candidate has excellent React skills which match 80% of the requirements..."
+            "explanation": "Candidate has excellent React skills which match 80% of the requirements...",
+            "suggestedImprovements": [
+                { "area": "Professional Summary", "suggestion": "Rephrase your opening statement to explicitly mention 'Scale' and 'High-Availability'." },
+                { "area": "Docker Usage", "suggestion": "Quantify your experience by mentioning specific orchestration tools like Kubernetes." }
+            ],
+            "resumeSummary": "Experienced Full Stack Developer with 5+ years of building scalable web applications using React and Node.js..."
         }
         `;
 
@@ -78,6 +85,10 @@ export const analyzeMatchWithFile = async (req, res) => {
         if (!filePath) {
             return res.status(400).json({ msg: "No resume file uploaded" });
         }
+        if (!req.file.originalname.toLowerCase().endsWith('.pdf')) {
+            if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            return res.status(400).json({ msg: "Only PDF files are supported for parsing." });
+        }
 
         const resumeText = await parsePDF(filePath);
 
@@ -95,13 +106,20 @@ export const analyzeMatchWithFile = async (req, res) => {
         1. Calculate a "Match Score" (0-100) based on skills, experience years, and project relevance. Be realistic, not generous.
         2. Identify "Missing Keywords" (Critical skills mentioned in JD but absent in Profile).
         3. Write a "Verdict": A 2-sentence summary of whether they should apply or not.
+        4. Provide "Suggested Improvements": An array of objects with 'area' (e.g. "Professional Summary", "Docker Usage") and 'suggestion'. Provide 2-4 key actionable improvements.
+        5. Provide a "Resume Summary": A short professional summary paragraph derived from the candidate profile.
 
         OUTPUT JSON ONLY:
         {
             "matchScore": 75,
             "missingKeywords": ["React Native", "GraphQL"],
             "verdict": "Strong candidate for frontend, but lacks required mobile experience.",
-            "explanation": "Candidate has excellent React skills which match 80% of the requirements..."
+            "explanation": "Candidate has excellent React skills which match 80% of the requirements...",
+            "suggestedImprovements": [
+                { "area": "Professional Summary", "suggestion": "Rephrase your opening statement to explicitly mention 'Scale' and 'High-Availability'." },
+                { "area": "Docker Usage", "suggestion": "Quantify your experience by mentioning specific orchestration tools like Kubernetes." }
+            ],
+            "resumeSummary": "Experienced Full Stack Developer with 5+ years of building scalable web applications using React and Node.js..."
         }
         `;
 
@@ -125,5 +143,40 @@ export const analyzeMatchWithFile = async (req, res) => {
         console.error("Analysis Error:", err);
         if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
         res.status(500).json({ msg: 'Server Error during file analysis' });
+    }
+};
+
+import SavedAnalysis from '../models/SavedAnalysis.js';
+
+export const saveAnalysis = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const analysisData = req.body;
+
+        if (!analysisData || !analysisData.type) {
+            return res.status(400).json({ msg: "Invalid analysis data" });
+        }
+
+        const newSavedAnalysis = new SavedAnalysis({
+            userId,
+            ...analysisData
+        });
+
+        await newSavedAnalysis.save();
+        res.json(newSavedAnalysis);
+    } catch (err) {
+        console.error("Save Analysis Error:", err);
+        res.status(500).json({ msg: 'Server Error while saving analysis' });
+    }
+};
+
+export const getSavedAnalyses = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const analyses = await SavedAnalysis.find({ userId }).sort({ timestamp: -1 });
+        res.json(analyses);
+    } catch (err) {
+        console.error("Get Saved Analyses Error:", err);
+        res.status(500).json({ msg: 'Server Error while fetching saved analyses' });
     }
 };

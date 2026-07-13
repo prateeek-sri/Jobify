@@ -68,6 +68,8 @@ export function AnalysisForm({ onAnalysisComplete }) {
         missingSkills: data.missingKeywords || [],
         verdict: data.verdict,
         explanation: data.explanation,
+        suggestedImprovements: data.suggestedImprovements || [],
+        resumeSummary: data.resumeSummary || "",
         timestamp: Date.now(),
       };
 
@@ -463,7 +465,7 @@ export function AnalysisForm({ onAnalysisComplete }) {
                   className="input"
                   name="file"
                   type="file"
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf"
                   onChange={handleResumeSelect}
                 />
                 <svg

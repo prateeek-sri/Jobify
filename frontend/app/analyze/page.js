@@ -19,13 +19,16 @@ export default function AnalyzePage() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Pass the "setter" to the form so it can update the state */}
-            <AnalysisForm onAnalysisComplete={setAnalysisResult} />
-            
-            {/* Pass the "data" to the results so it can display it */}
-            <AnalysisResults data={analysisResult} />
-          </div>
+          {!analysisResult ? (
+            <div className="grid lg:grid-cols-2 gap-6">
+              <AnalysisForm onAnalysisComplete={setAnalysisResult} />
+              <AnalysisResults data={null} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6">
+              <AnalysisResults data={analysisResult} onReset={() => setAnalysisResult(null)} />
+            </div>
+          )}
         </div>
       </main>
     </div>
